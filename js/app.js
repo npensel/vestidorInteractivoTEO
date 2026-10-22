@@ -533,26 +533,79 @@ function downloadFromConfirm() {
 function exportTeoPhotoDirectly() {
   playTone(800, 'triangle', 0.2);
   
+  const canvas = document.getElementById('snapshotCanvas');
+  if (!canvas) {
+    showToast('No se encontró el lienzo para la foto.');
+    return;
+  }
+  
+  const ctx = canvas.getContext('2d');
+  
+  // 1. Fondo y Marco estético
+  ctx.fillStyle = '#F0F7FF';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = '#CBD5E1';
+  ctx.lineWidth = 8;
+  ctx.strokeRect(16, 16, canvas.width - 32, canvas.height - 32);
+  
+  // 2. Título superior
+  ctx.fillStyle = '#1E293B';
+  ctx.font = 'bold 30px "Fredoka", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('¡Mi Amigo TEO!', canvas.width / 2, 65);
+
+  // 3. Tomar la imagen base activa (Real o Dibujo)
   const source = STATE.isRealPhotoActive
     ? document.getElementById('teoRealPhoto')
     : document.getElementById('teoDrawingImage');
 
   if (source && source.src) {
-    try {
-      const link = document.createElement('a');
-      link.download = `Mi_TEO_${currentChildProfile.name || 'Personalizado'}_${Date.now()}.png`;
-      link.href = source.src;
-      link.target = '_blank';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      showToast('📸 ¡Foto descargada con éxito!');
-    } catch (e) {
-      console.error('Error al descargar la imagen:', e);
-      showToast('No se pudo descargar la imagen.');
+    // Dibujar base de TEO
+    ctx.drawImage(source, 160, 110, 320, 420);
+  }
+
+  // 4. Tomar e incrustar las capas de ropa y accesorios activos en pantalla
+  const topImg = document.querySelector('#layerTop img');
+  const headImg = document.querySelector('#layerHead img');
+
+  if (topImg && topImg.src) {
+    ctx.drawImage(topImg, 160, 110, 320, 420);
+  }
+  if (headImg && headImg.src) {
+    ctx.drawImage(headImg, 160, 110, 320, 420);
+  }
+
+  // 5. Pie de página institucional
+  ctx.font = '600 15px "Fredoka", sans-serif';
+  ctx.fillStyle = '#94A3B8';
+  ctx.fillText('Proyecto Final de Carrera - UNLaM', canvas.width / 2, 690);
+
+  // 6. Generar descarga del archivo PNG compuesto
+  try {
+    const dataUrl = canvas.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.download = `Mi_TEO_${currentChildProfile.name || 'Personalizado'}_${Date.now()}.png`;
+    link.href = dataUrl;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast('📸 ¡Foto de recuerdo descargada con éxito!');
+  } catch (e) {
+    console.error('Error al exportar el canvas con ropa:', e);
+    // Fallback de emergencia si el navegador bloquea el canvas por seguridad local
+    if (source && source.src) {
+      const fallbackLink = document.createElement('a');
+      fallbackLink.download = `Mi_TEO_${Date.now()}.png`;
+      fallbackLink.href = source.src;
+      fallbackLink.target = '_blank';
+      document.body.appendChild(fallbackLink);
+      fallbackLink.click();
+      document.body.removeChild(fallbackLink);
+      showToast('📸 ¡Foto descargada!');
+    } else {
+      showToast('No se pudo generar la foto.');
     }
-  } else {
-    showToast('No hay imagen disponible para descargar.');
   }
 }
 
