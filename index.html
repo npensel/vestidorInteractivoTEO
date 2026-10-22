@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Vestidor de TEO - Personalizá a tu robot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" type="image/png" href="Logo TEO.png">
+</head>
+<body>
+
+  <!-- MOBILE SMARTPHONE FRAME -->
+  <div class="mobile-frame">
+
+    <!-- SCREEN 1: ONBOARDING / PERFIL DEL NIÑO -->
+    <div class="screen-view active" id="screenOnboarding">
+      <div class="onboarding-scroll-area">
+        
+        <div class="onboarding-hero">
+          <div class="onboarding-hero-icon"><img src="Logo TEO.png" alt="Icono TEO"></div>
+          <h1 class="onboarding-title">¡Bienvenido a TEO!</h1>
+          <p class="onboarding-subtitle">Completá tus datos antes de entrar al vestidor mágico</p>
+        </div>
+
+        <form class="onboarding-form-card" id="formOnboarding" onsubmit="event.preventDefault(); submitOnboarding();">
+          
+          <!-- 1. Nombre o apodo -->
+          <div class="form-group">
+            <label class="form-label" for="inputName">
+              <span>👤 1. Nombre o apodo:</span>
+            </label>
+            <input type="text" id="inputName" class="form-input" placeholder="ej: Agus, Sofi..." oninput="checkFormValidity()" onchange="checkFormValidity()" autocomplete="off" />
+          </div>
+
+          <!-- 2. Edad -->
+          <div class="form-group">
+            <label class="form-label" for="inputAge">
+              <span>🎂 2. Edad:</span>
+            </label>
+            <input type="number" id="inputAge" class="form-input" placeholder="Ingresá tu edad" min="1" oninput="checkFormValidity()" onchange="checkFormValidity()" />
+          </div>
+
+          <!-- 3. Género -->
+          <div class="form-group">
+            <label class="form-label" for="selectGender">
+              <span>🌈 3. Género:</span>
+            </label>
+            <div class="select-wrapper">
+              <select id="selectGender" class="form-select" onchange="checkFormValidity()">
+                <option value="" disabled selected>Elegí una opción...</option>
+                <option value="Niño">Niño</option>
+                <option value="Niña">Niña</option>
+                <option value="Otro">Otro</option>
+                <option value="Prefiero no decirlo">Prefiero no decirlo</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 4. Perfil de desarrollo -->
+          <div class="form-group">
+            <label class="form-label" for="selectProfile">
+              <span>🧩 4. Perfil de desarrollo:</span>
+            </label>
+            <div class="select-wrapper">
+              <select id="selectProfile" class="form-select" onchange="checkFormValidity()">
+                <option value="" disabled selected>Elegí una opción...</option>
+                <option value="Neurotípico / sin diagnostico">Neurotípico / sin diagnostico</option>
+                <option value="TEA (Trastorno del espectro autista)">TEA (Trastorno del espectro autista)</option>
+                <option value="TDAH">TDAH</option>
+                <option value="Trastorno del Lenguaje o Comunicación">Trastorno del Lenguaje o Comunicación</option>
+                <option value="Otro">Otro</option>
+                <option value="Prefiero no decirlo">Prefiero no decirlo</option>
+              </select>
+            </div>
+          </div>
+
+        </form>
+
+        <div style="margin-top: 4px;">
+          <button type="button" id="btnStartGame" class="btn-start-game" disabled onclick="submitOnboarding()">
+            <span>¡Empezá a jugar!</span> <span>🚀</span>
+          </button>
+        </div>
+
+      </div>
+    </div> <!-- END SCREEN 1 -->
+
+    <!-- SCREEN 2: DRESSING GAME VIEW -->
+    <div class="screen-view" id="screenGame">
+
+      <!-- HEADER -->
+      <header class="app-header">
+        <div class="brand">
+          <div class="brand-icon"><img src="Logo TEO.png" alt="Icono TEO"></div>
+          <div>
+            <div class="brand-title">TEO</div>
+          </div>
+        </div>
+        <div class="header-btns">
+          <button class="icon-btn" id="btnSound" title="Silenciar / Activar sonido">🔊</button>
+          <button class="icon-btn" id="btnRandom" title="¡Sorpresa aleatoria!">🎲</button>
+          <button class="icon-btn" id="btnReset" title="Desvestir">🔄</button>
+        </div>
+      </header>
+
+      <!-- SPEECH BAR -->
+      <div class="speech-bar">
+        <div class="teo-speech-bubble" id="teoSpeech" onclick="tapTeo()" title="Tocar para interactuar con TEO">
+          <span class="speech-icon">💬</span>
+          <span id="speechText">¡Hola! Probame ropa con las flechitas.</span>
+          <button class="voice-toggle-btn" id="btnTeoVoiceToggle" title="Silenciar voz de TEO" onclick="toggleTeoVoice(event)">🔊</button>
+        </div>
+      </div>
+
+      <!-- SELECTOR DE SKINS DE TEO (UBICADO EXACTAMENTE ENTRE SPEECH BAR Y FLECHITAS DE CABEZA) -->
+      <div class="skin-selector-bar">
+        <div class="skin-nav-container">
+          <button class="skin-arrow-btn" onclick="cycleSkin(-1)" title="Skin anterior">‹</button>
+          <div class="skin-label-capsule">
+            <span class="skin-label-text">Skin de TEO</span>
+            <span class="skin-current-name" id="skinNameDisplay">Osito</span>
+          </div>
+          <button class="skin-arrow-btn" onclick="cycleSkin(1)" title="Skin siguiente">›</button>
+        </div>
+
+        <button class="view-mode-toggle real-active" id="btnModeToggle" onclick="toggleRealMode()" title="Cambiar entre TEO Real y Dibujo">
+          <span id="modeIcon">📷</span> <span id="modeText">TEO Real</span>
+        </button>
+      </div>
+
+      <!-- MAIN STAGE: TEO IN THE MIDDLE WITH 3 LEVEL ARROWS -->
+      <main class="stage-container">
+        <div class="teo-center-viewport">
+          <div class="podium-shadow"></div>
+
+          <div class="character-container" id="characterContainer" onclick="tapTeo()">
+            <img id="teoRealPhoto" class="teo-real-img" src="SVGs/Teo real/Osito.png" alt="TEO real" />
+            <img id="teoDrawingImage" class="teo-drawing-img" src="SVGs/Teo dibujo/Osito.svg" alt="TEO dibujo" style="display: none;" />
+            <!-- WEARABLE CLOTHING OVERLAYS (STRICTLY ABOVE TEO) -->
+            <div class="clothing-layer empty" id="layerTop"></div>
+            <div class="clothing-layer empty" id="layerHead"></div>
+          </div>
+        </div>
+
+        <!-- 3-LEVEL NAVIGATION OVERLAY -->
+        <div class="controls-overlay">
+          <!-- LEVEL 1: CABEZA -->
+          <div class="nav-level-row level-row-head">
+            <button class="arrow-btn level-head" onclick="cycleCategory('head', -1)" title="Accesorio anterior">‹</button>
+            <button class="arrow-btn level-head" onclick="cycleCategory('head', 1)" title="Siguiente accesorio">›</button>
+          </div>
+
+          <!-- LEVEL 2: REMERA -->
+          <div class="nav-level-row level-row-top">
+            <button class="arrow-btn level-top" onclick="cycleCategory('top', -1)" title="Remera anterior">‹</button>
+            <button class="arrow-btn level-top" onclick="cycleCategory('top', 1)" title="Siguiente remera">›</button>
+          </div>
+
+        </div>
+      </main>
+
+      <!-- BOTON CONFIRMAR PERSONALIZACION (ABAJO DE LAS ULTIMAS FLECHITAS) -->
+      <div class="confirm-bar">
+        <button class="btn-confirm-customization" onclick="confirmCustomization()">
+          <span>✨</span> <span>Confirmar personalización</span> <span>🎉</span>
+        </button>
+      </div>
+
+      <!-- BOTTOM BAR WITH CATEGORY SELECTORS -->
+      <footer class="bottom-bar">
+        <div class="wear-chip" id="pillHead" onclick="openSheet('head')">
+          <span>🧢</span> <span id="pillHeadTxt">Accesorio</span>
+        </div>
+        <div class="wear-chip" id="pillTop" onclick="openSheet('top')">
+          <span>👕</span> <span id="pillTopTxt">Remera</span>
+        </div>
+      </footer>
+
+      <!-- BOTTOM SHEET CATALOG (OPENS FROM BOTTOM CHIPS) -->
+      <div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet(event)">
+        <div class="sheet-card" onclick="event.stopPropagation()">
+          <div class="sheet-handle"></div>
+          <div class="sheet-header">
+            <div class="sheet-title" id="sheetTitle">🧢 Opciones de Accesorios</div>
+            <button class="sheet-close-btn" onclick="closeSheetDirect()">✕</button>
+          </div>
+          <div class="sheet-content" id="sheetGrid"></div>
+        </div>
+      </div>
+
+      <!-- MODAL DE CELEBRACION Y CONFIRMACION -->
+      <div class="sheet-overlay" id="confirmModalOverlay" onclick="closeConfirmModal(event)">
+        <div class="sheet-card" onclick="event.stopPropagation()">
+          <div class="sheet-handle"></div>
+          <div class="confirm-modal-content">
+            <div class="confirm-hero-badge">🎉 ¡TEO Personalizado!</div>
+            <div class="confirm-subtitle">¡Tu robot quedó listo para acompañarte!</div>
+            
+            <div class="confirm-summary-box">
+              <div class="summary-line">
+                <span class="summary-icon">🧸</span>
+                <span class="summary-key">Skin:</span>
+                <strong class="summary-val" id="summarySkin">Osito</strong>
+              </div>
+            <div class="summary-line">
+              <span class="summary-icon">🎨</span>
+              <span class="summary-key">Estilo:</span>
+              <strong class="summary-val" id="summaryMode">📷 TEO Real</strong>
+            </div>
+              <div class="summary-line">
+                <span class="summary-icon">🧢</span>
+                <span class="summary-key">Accesorio:</span>
+                <strong class="summary-val" id="summaryHead">Sin accesorio</strong>
+              </div>
+              <div class="summary-line">
+                <span class="summary-icon">👕</span>
+                <span class="summary-key">Remera:</span>
+                <strong class="summary-val" id="summaryTop">Sin remera</strong>
+              </div>
+            </div>
+
+            <div class="confirm-actions">
+              <button class="btn-confirm-action primary" onclick="downloadFromConfirm()">
+                <span>📸</span> <span>Descargar foto de recuerdo</span>
+              </button>
+              <button class="btn-confirm-action secondary" onclick="restartAndPlayAgain()">
+                <span>🔄</span> <span>Jugar una vez más</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOAST -->
+      <div class="toast" id="appToast">Prenda seleccionada</div>
+
+    </div> <!-- END SCREEN 2 -->
+
+  </div> <!-- END MOBILE FRAME -->
+
+  <!-- CANVAS FOR EXPORTING SNAPSHOT -->
+  <canvas id="snapshotCanvas" width="640" height="720"></canvas>
+
+  <!-- MODULAR SCRIPTS -->
+  <script src="js/clothing.js"></script>
+  <script src="js/voice-audio.js"></script>
+  <script src="js/skins.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

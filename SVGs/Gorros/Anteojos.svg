@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Gorros" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 745.71 500.53">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #bbe2ff;
+      }
+
+      .cls-1, .cls-2 {
+        stroke: #000;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 2px;
+      }
+
+      .cls-2 {
+        fill: none;
+      }
+    </style>
+  </defs>
+  <path class="cls-2" d="M128.91,416.24c6.89-36.77,40.88-68.54,78.24-99.18"/>
+  <path class="cls-2" d="M616.79,416.24c-6.89-36.77-40.88-68.54-78.24-99.18"/>
+  <ellipse class="cls-1" cx="277.56" cy="320.24" rx="73.59" ry="29.12"/>
+  <ellipse class="cls-1" cx="468.15" cy="320.24" rx="73.59" ry="29.12"/>
+  <path class="cls-2" d="M351.15,320.76c0-8.71,43.41-8.71,43.41,0"/>
+</svg>

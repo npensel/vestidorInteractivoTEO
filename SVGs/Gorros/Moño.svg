@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Gorros" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 745.71 500.53">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #e20000;
+      }
+
+      .cls-1, .cls-2 {
+        stroke: #000;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 2px;
+      }
+
+      .cls-2 {
+        fill: #fff;
+      }
+    </style>
+  </defs>
+  <path class="cls-1" d="M361.56,266.72s-71.07-50.59-98.82-50.59c-21.88,0-33.18,23.18-33.18,35.29,0,13.18,16.9,26.05,17.88,38.12,1.08,13.3-15.06,22.12-15.06,37.41,0,10.62,8,31.76,28.24,31.76,28.91,0,103.06-52.47,103.06-52.47"/>
+  <circle class="cls-2" cx="262.03" cy="241.54" r="12.71"/>
+  <circle class="cls-2" cx="263.44" cy="328.6" r="12.71"/>
+  <circle class="cls-2" cx="278.03" cy="287.19" r="12.71"/>
+  <circle class="cls-2" cx="308.15" cy="260.84" r="12.71"/>
+  <circle class="cls-2" cx="313.79" cy="309.31" r="12.71"/>
+  <circle class="cls-2" cx="346.74" cy="285.31" r="12.71"/>
+  <path class="cls-1" d="M384.15,266.72s71.07-50.59,98.82-50.59c21.88,0,33.18,23.18,33.18,35.29,0,13.18-16.9,26.05-17.88,38.12-1.08,13.3,15.06,22.12,15.06,37.41,0,10.62-8,31.76-28.24,31.76-28.91,0-103.06-52.47-103.06-52.47"/>
+  <circle class="cls-2" cx="483.68" cy="241.54" r="12.71"/>
+  <circle class="cls-2" cx="482.26" cy="328.6" r="12.71"/>
+  <circle class="cls-2" cx="467.68" cy="287.19" r="12.71"/>
+  <circle class="cls-2" cx="437.56" cy="260.84" r="12.71"/>
+  <circle class="cls-2" cx="431.91" cy="309.31" r="12.71"/>
+  <circle class="cls-2" cx="398.97" cy="285.31" r="12.71"/>
+  <rect class="cls-1" x="355.91" y="256.84" width="33.88" height="60" rx="11.29" ry="11.29"/>
+  <circle class="cls-2" cx="372.85" cy="286.84" r="12.71"/>
+</svg>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Gorros" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 745.71 500.53">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #ffce00;
+      }
+
+      .cls-1, .cls-2 {
+        stroke: #000;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 2px;
+      }
+
+      .cls-2 {
+        fill: #ef0000;
+      }
+    </style>
+  </defs>
+  <polygon class="cls-1" points="372.85 340.96 525.74 340.96 573.39 226.6 451.62 276.37 372.85 177.9 294.08 276.37 172.32 226.6 219.97 340.96 372.85 340.96"/>
+  <circle class="cls-2" cx="171.26" cy="228.01" r="12.35"/>
+  <circle class="cls-2" cx="372.85" cy="176.96" r="12.35"/>
+  <circle class="cls-2" cx="574.44" cy="228.01" r="12.35"/>
+</svg>

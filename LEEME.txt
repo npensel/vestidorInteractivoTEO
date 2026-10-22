@@ -1,0 +1,54 @@
+# Vestidor de TEO - Estructura de Proyecto Web
+
+## Estructura de Archivos:
+- index.html                -> Estructura semántica limpia (Pantalla 1: Formulario | Pantalla 2: Vestidor)
+- SCRIPT_BASE_DE_DATOS.txt  -> Script SQL completo en texto plano para crear la base de datos (PostgreSQL / Supabase)
+- css/styles.css            -> Estilos visuales y diseño responsive mobile
+- js/skins.js               -> Catálogo de las 9 skins de TEO desde SVGs/Teo real y SVGs/Teo dibujo
+- js/clothing.js            -> Catálogo de 10 gorros y 10 remeras desde SVGs/Gorros y SVGs/Remeras
+- js/app.js                 -> Controlador de la aplicación, síntesis de voz y navegación
+- db/schema_teo.sql         -> Script SQL de base de datos (.sql)
+- db/schema_teo.txt         -> Script SQL de base de datos en formato texto (.txt)
+
+## Imágenes de Skins:
+Las imágenes activas de TEO real se encuentran en `SVGs/Teo real/`.
+Las versiones de dibujo se encuentran en `SVGs/Teo dibujo/`.
+Ambas variantes se mantienen alineadas en el mismo marco visual.
+
+## Vestimenta:
+El catálogo activo contiene únicamente gorros (`SVGs/Gorros/`) y remeras
+(`SVGs/Remeras/`). Los pantalones y los SVG inline anteriores ya no forman parte
+de la aplicación.
+
+## Guardado en Google Sheets
+
+La aplicación guarda cada personalización confirmada en la hoja indicada por
+el usuario, con las columnas `Nombre`, `Edad`, `Género`, `Perfil`, `Skin`,
+`Sombrero`, `Remera` y `Fecha`.
+
+1. Abrí Google Apps Script desde la planilla y pegá el contenido de
+   `google-apps-script.gs`.
+2. Implementá el proyecto como aplicación web, ejecutando como vos y con acceso
+   para cualquier usuario que tenga el enlace.
+3. Copiá la URL `/exec` del despliegue y pegala en
+   `GOOGLE_SHEETS_WEB_APP_URL`, dentro de `js/app.js`.
+
+El ID de la planilla ya está configurado en el script de Apps Script. La
+aplicación no utiliza una base de datos SQL ni guarda el perfil en
+`localStorage`.
+
+## Funcionalidades de Audio & Voz:
+1. **Voz de la Primera Versión:**
+   Se restableció exactamente la voz original y limpia (`lang: 'es-AR'`, cadencia pausada `0.95`, tono amigable `1.25`), sin filtros ni modificaciones acústicas artificiales.
+2. **Botón de Parlante junto al diálogo de TEO:**
+   El botón `🔊` dentro del globo de diálogo ahora funciona como un interruptor para **habilitar o deshabilitar el habla de TEO**:
+   - `🔊` (Activo): TEO lee sus frases en voz alta cada vez que interactúa o se cambia de ropa.
+   - `🔇` (Silenciado): TEO muestra el texto en pantalla pero sin emitir voz.
+
+## Base de Datos (Script SQL en .txt):
+El archivo `SCRIPT_BASE_DE_DATOS.txt` contiene:
+1. Tablas maestras/catálogos: géneros, perfiles de desarrollo, skins de TEO, tipos de accesorios y prendas.
+2. Tablas transaccionales: sesiones guardadas (con ubicación geográfica, dispositivo y métricas) y detalle de prendas elegidas.
+3. Tabla de telemetría de eventos sensoriales.
+4. Índices optimizados y vistas SQL para dashboards y reportes.
+5. Carga inicial completa (seeds) de todos los registros oficiales.

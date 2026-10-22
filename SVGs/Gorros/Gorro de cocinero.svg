@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Gorros" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 745.71 500.53">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #fff;
+        stroke: #000;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 2px;
+      }
+    </style>
+  </defs>
+  <rect class="cls-1" x="251.79" y="265.66" width="242.12" height="98.82"/>
+  <path class="cls-1" d="M523.91,257.19c0,24.17-34.44,43.76-76.94,43.76-35.31,0-65.08-13.53-74.11-31.98-9.04,18.45-38.81,31.98-74.12,31.98-42.5,0-76.94-19.59-76.94-43.76s33.83-43.42,75.81-43.76c7.4-19.77,38.28-34.6,75.24-34.6s67.85,14.83,75.25,34.6c41.98.34,75.81,19.8,75.81,43.76Z"/>
+</svg>
