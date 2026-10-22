@@ -64,7 +64,7 @@ function speakTeo(text, audioKey = text) {
   if (!STATE.soundEnabled) return;
   if (!STATE.teoVoiceEnabled) return;
 
-  const audioSrc = typeof TEO_AUDIO !== 'undefined' ? TEO_AUDIO[audioKey] : null;
+  /*const audioSrc = typeof TEO_AUDIO !== 'undefined' ? TEO_AUDIO[audioKey] : null;
   if (audioSrc) {
     if (currentVoiceAudio) {
       currentVoiceAudio.pause();
@@ -75,7 +75,7 @@ function speakTeo(text, audioKey = text) {
       console.warn(`No se pudo reproducir el audio de TEO: ${audioSrc}`);
     });
     return;
-  }
+  }*/
 
   if ('speechSynthesis' in window) {
     try {
