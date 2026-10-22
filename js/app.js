@@ -540,6 +540,7 @@ function exportTeoPhotoDirectly() {
   }
   
   const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
   
   // 1. Fondo y Marco estético
   ctx.fillStyle = '#F0F7FF';
@@ -554,58 +555,90 @@ function exportTeoPhotoDirectly() {
   ctx.textAlign = 'center';
   ctx.fillText('¡Mi Amigo TEO!', canvas.width / 2, 65);
 
-  // 3. Tomar la imagen base activa (Real o Dibujo)
+  // 3. Determinar la fuente correcta (Real o Dibujo)
   const source = STATE.isRealPhotoActive
     ? document.getElementById('teoRealPhoto')
     : document.getElementById('teoDrawingImage');
 
-  if (source && source.src) {
-    // Dibujar base de TEO
-    ctx.drawImage(source, 160, 110, 320, 420);
-  }
+  // Función interna para ejecutar la descarga una vez que todo está dibujado
+  const triggerDownload = () => {
+    // Pie de página
+    ctx.font = '600 15px "Fredoka", sans-serif';
+    ctx.fillStyle = '#94A3B8';
+    ctx.fillText('Proyecto Final de Carrera - UNLaM', canvas.width / 2, 690);
 
-  // 4. Tomar e incrustar las capas de ropa y accesorios activos en pantalla
-  const topImg = document.querySelector('#layerTop img');
-  const headImg = document.querySelector('#layerHead img');
-
-  if (topImg && topImg.src) {
-    ctx.drawImage(topImg, 160, 110, 320, 420);
-  }
-  if (headImg && headImg.src) {
-    ctx.drawImage(headImg, 160, 110, 320, 420);
-  }
-
-  // 5. Pie de página institucional
-  ctx.font = '600 15px "Fredoka", sans-serif';
-  ctx.fillStyle = '#94A3B8';
-  ctx.fillText('Proyecto Final de Carrera - UNLaM', canvas.width / 2, 690);
-
-  // 6. Generar descarga del archivo PNG compuesto
-  try {
-    const dataUrl = canvas.toDataURL('image/png');
-    const link = document.createElement('a');
-    link.download = `Mi_TEO_${currentChildProfile.name || 'Personalizado'}_${Date.now()}.png`;
-    link.href = dataUrl;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    showToast('📸 ¡Foto de recuerdo descargada con éxito!');
-  } catch (e) {
-    console.error('Error al exportar el canvas con ropa:', e);
-    // Fallback de emergencia si el navegador bloquea el canvas por seguridad local
-    if (source && source.src) {
-      const fallbackLink = document.createElement('a');
-      fallbackLink.download = `Mi_TEO_${Date.now()}.png`;
-      fallbackLink.href = source.src;
-      fallbackLink.target = '_blank';
-      document.body.appendChild(fallbackLink);
-      fallbackLink.click();
-      document.body.removeChild(fallbackLink);
-      showToast('📸 ¡Foto descargada!');
-    } else {
+    try {
+      const dataUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = `Mi_TEO_${currentChildProfile.name || 'Personalizado'}_${Date.now()}.png`;
+      link.href = dataUrl;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('📸 ¡Foto de recuerdo descargada con éxito!');
+    } catch (e) {
+      console.error('Error al exportar el canvas:', e);
       showToast('No se pudo generar la foto.');
     }
+  };
+
+  // 4. Dibujar base de TEO y capas de ropa de forma secuencial segura
+  if (source && source.src) {
+    const baseImg = new Image();
+    baseImg.crossOrigin = 'anonymous';
+    baseImg.onload = () => {
+      ctx.drawImage(baseImg, 160, 110, 320, 420);
+
+      // Buscar elementos de ropa activos mediante los selectores reales del DOM
+      const activeTopImg = document.querySelector('#layerTop img');
+      const activeHeadImg = document.querySelector('#layerHead img');
+
+      let pendingLayers = 0;
+      const checkAndDownload = () => {
+        pendingLayers--;
+        if (pendingLayers <= 0) {
+          triggerDownload();
+        }
+      };
+
+      // Procesar remera si existe
+      if (activeTopImg && activeTopImg.src) {
+        pendingLayers++;
+        const topImage = new Image();
+        topImage.crossOrigin = 'anonymous';
+        topImage.onload = () => {
+          ctx.drawImage(topImage, 160, 110, 320, 420);
+          checkAndDownload();
+        };
+        topImage.onerror = () => checkAndDownload();
+        topImage.src = activeTopImg.src;
+      }
+
+      // Procesar accesorio/sombrero si existe
+      if (activeHeadImg && activeHeadImg.src) {
+        pendingLayers++;
+        const headImage = new Image();
+        headImage.crossOrigin = 'anonymous';
+        headImage.onload = () => {
+          ctx.drawImage(headImage, 160, 110, 320, 420);
+          checkAndDownload();
+        };
+        headImage.onerror = () => checkAndDownload();
+        headImage.src = activeHeadImg.src;
+      }
+
+      // Si no hay ninguna capa de ropa activa, disparar directo
+      if (pendingLayers === 0) {
+        triggerDownload();
+      }
+    };
+    baseImg.onerror = () => {
+      showToast('No se pudo cargar la imagen para la foto.');
+    };
+    baseImg.src = source.src;
+  } else {
+    showToast('No hay imagen disponible para descargar.');
   }
 }
 
