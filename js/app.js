@@ -552,7 +552,7 @@ function exportTeoPhotoDirectly() {
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   
-  // 1. Fondo y Marco estético
+  // 1. Fondo y Marco estético general de la postal
   ctx.fillStyle = '#F0F7FF';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.strokeStyle = '#CBD5E1';
@@ -565,14 +565,17 @@ function exportTeoPhotoDirectly() {
   ctx.textAlign = 'center';
   ctx.fillText('¡Mi Amigo TEO!', canvas.width / 2, 65);
 
-  // 3. Determinar la fuente correcta (Real o Dibujo)
+  // 3. Obtener las imágenes actuales renderizadas en la interfaz
   const source = STATE.isRealPhotoActive
     ? document.getElementById('teoRealPhoto')
     : document.getElementById('teoDrawingImage');
 
-  // Función interna para ejecutar la descarga una vez que todo está dibujado
+  const activeTopImg = document.querySelector('#layerTop img');
+  const activeHeadImg = document.querySelector('#layerHead img');
+
+  // Función para disparar la descarga una vez que todo está en su escala correcta
   const triggerDownload = () => {
-    // Pie de página
+    // Pie de página institucional
     ctx.font = '600 15px "Fredoka", sans-serif';
     ctx.fillStyle = '#94A3B8';
     ctx.fillText('Proyecto Final de Carrera - UNLaM', canvas.width / 2, 690);
@@ -593,62 +596,54 @@ function exportTeoPhotoDirectly() {
     }
   };
 
-  // 4. Dibujar base de TEO y capas de ropa de forma secuencial segura
+  // 4. Dibujar con las proporciones correctas y centradas (evitando el efecto remera gigante)
   if (source && source.src) {
     const baseImg = new Image();
     baseImg.crossOrigin = 'anonymous';
     baseImg.onload = () => {
-      ctx.drawImage(baseImg, 160, 110, 320, 420);
+      // Coordenadas equilibradas para que TEO quede bien proporcionado en el centro
+      const renderX = 180;
+      const renderY = 130;
+      const renderW = 280;
+      const renderH = 380;
 
-      // Buscar elementos de ropa activos mediante los selectores reales del DOM
-      const activeTopImg = document.querySelector('#layerTop img');
-      const activeHeadImg = document.querySelector('#layerHead img');
+      // Dibujar base de TEO
+      ctx.drawImage(baseImg, renderX, renderY, renderW, renderH);
 
-      let pendingLayers = 0;
-      const checkAndDownload = () => {
-        pendingLayers--;
-        if (pendingLayers <= 0) {
-          triggerDownload();
-        }
-      };
-
-      // Procesar remera si existe
+      // Dibujar remera respetando la misma proporción exacta de TEO
       if (activeTopImg && activeTopImg.src) {
-        pendingLayers++;
-        const topImage = new Image();
-        topImage.crossOrigin = 'anonymous';
-        topImage.onload = () => {
-          ctx.drawImage(topImage, 160, 110, 320, 420);
-          checkAndDownload();
+        const topImg = new Image();
+        topImg.crossOrigin = 'anonymous';
+        topImg.onload = () => {
+          ctx.drawImage(topImg, renderX, renderY, renderW, renderH);
+          
+          // Dibujar gorro/accesorio si existe
+          if (activeHeadImg && activeHeadImg.src) {
+            const headImg = new Image();
+            headImg.crossOrigin = 'anonymous';
+            headImg.onload = () => {
+              ctx.drawImage(headImg, renderX, renderY, renderW, renderH);
+              triggerDownload();
+            };
+            headImg.src = activeHeadImg.src;
+          } else {
+            triggerDownload();
+          }
         };
-        topImage.onerror = () => checkAndDownload();
-        topImage.src = activeTopImg.src;
-      }
-
-      // Procesar accesorio/sombrero si existe
-      if (activeHeadImg && activeHeadImg.src) {
-        pendingLayers++;
-        const headImage = new Image();
-        headImage.crossOrigin = 'anonymous';
-        headImage.onload = () => {
-          ctx.drawImage(headImage, 160, 110, 320, 420);
-          checkAndDownload();
+        topImg.src = activeTopImg.src;
+      } else if (activeHeadImg && activeHeadImg.src) {
+        const headImg = new Image();
+        headImg.crossOrigin = 'anonymous';
+        headImg.onload = () => {
+          ctx.drawImage(headImg, renderX, renderY, renderW, renderH);
+          triggerDownload();
         };
-        headImage.onerror = () => checkAndDownload();
-        headImage.src = activeHeadImg.src;
-      }
-
-      // Si no hay ninguna capa de ropa activa, disparar directo
-      if (pendingLayers === 0) {
+        headImg.src = activeHeadImg.src;
+      } else {
         triggerDownload();
       }
     };
-    baseImg.onerror = () => {
-      showToast('No se pudo cargar la imagen para la foto.');
-    };
     baseImg.src = source.src;
-  } else {
-    showToast('No hay imagen disponible para descargar.');
   }
 }
 
