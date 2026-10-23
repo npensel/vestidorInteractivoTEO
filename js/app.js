@@ -540,262 +540,116 @@ function downloadFromConfirm() {
   exportTeoPhotoDirectly();
 }
 
+/* =========================================================================
+   PHOTO EXPORT SYSTEM (CORREGIDO PARA CAPTURA PERFECTA)
+   ========================================================================= */
 function exportTeoPhotoDirectly() {
   playTone(800, 'triangle', 0.2);
 
   const canvas = document.getElementById('snapshotCanvas');
-
   if (!canvas) {
     showToast('No se encontró el lienzo para la foto.');
     return;
   }
 
   const ctx = canvas.getContext('2d');
-
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // ==========================================
-  // 1. FONDO Y MARCO
-  // ==========================================
-
+  // 1. FONDO Y MARCO DEL RECUERDO
   ctx.fillStyle = '#F0F7FF';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   ctx.strokeStyle = '#CBD5E1';
   ctx.lineWidth = 8;
-  ctx.strokeRect(
-    16,
-    16,
-    canvas.width - 32,
-    canvas.height - 32
-  );
+  ctx.strokeRect(16, 16, canvas.width - 32, canvas.height - 32);
 
-  // ==========================================
   // 2. TÍTULO
-  // ==========================================
-
   ctx.fillStyle = '#1E293B';
   ctx.font = 'bold 30px "Fredoka", sans-serif';
   ctx.textAlign = 'center';
+  ctx.fillText('¡Mi Amigo TEO!', canvas.width / 2, 65);
 
-  ctx.fillText(
-    '¡Mi Amigo TEO!',
-    canvas.width / 2,
-    65
-  );
-
-  // ==========================================
-  // 3. ELEMENTOS ACTUALES
-  // ==========================================
-
+  // 3. OBTENER LAS IMÁGENES ACTIVAS
   const source = STATE.isRealPhotoActive
     ? document.getElementById('teoRealPhoto')
     : document.getElementById('teoDrawingImage');
 
-  const activeTopImg =
-    document.querySelector('#layerTop img');
-
-  const activeHeadImg =
-    document.querySelector('#layerHead img');
+  const activeTopImg = document.querySelector('#layerTop img');
+  const activeHeadImg = document.querySelector('#layerHead img');
 
   if (!source || !source.src) {
     showToast('No se encontró la imagen de TEO.');
     return;
   }
 
-  // ==========================================
-  // 4. POSICIÓN DE TEO EN LA EXPORTACIÓN
-  // ==========================================
-
-  const rx = 160;
-  const ry = 110;
-  const rw = 320;
-  const rh = 420;
-
-  // Rectángulo REAL de TEO en pantalla
-  const sourceRect = source.getBoundingClientRect();
-
-  // Escala entre la representación de TEO
-  // en pantalla y la representación en canvas
-  const scaleX = rw / sourceRect.width;
-  const scaleY = rh / sourceRect.height;
-
-  // ==========================================
-  // 5. CARGADOR DE IMÁGENES
-  // ==========================================
-
+  // Función auxiliar para cargar imágenes de forma segura con soporte CORS
   function loadImage(src) {
     return new Promise((resolve, reject) => {
       const img = new Image();
-
       img.crossOrigin = 'anonymous';
-
       img.onload = () => resolve(img);
-
-      img.onerror = () => {
-        reject(new Error(`No se pudo cargar la imagen: ${src}`));
-      };
-
+      img.onerror = () => reject(new Error(`No se pudo cargar la imagen: ${src}`));
       img.src = src;
     });
   }
 
-  // ==========================================
-  // 6. DIBUJAR UNA CAPA USANDO EL <img> REAL
-  // ==========================================
+  // Coordenadas base donde se dibuja a TEO en el canvas de exportación (ancho: 320, alto: 420)
+  const teoX = 160;
+  const teoY = 110;
+  const teoW = 320;
+  const teoH = 420;
 
-  function drawLayer(imgElement) {
-
-    if (!imgElement || !imgElement.src) {
-      return Promise.resolve();
-    }
-
-    return loadImage(imgElement.src).then(img => {
-
-      /*
-       * IMPORTANTE:
-       * usamos el getBoundingClientRect() DEL IMG,
-       * no el del div contenedor.
-       *
-       * Esto permite respetar:
-       * - width
-       * - height
-       * - transform
-       * - scale
-       * - translate
-       * - posición real en pantalla
-       */
-
-      const layerRect =
-        imgElement.getBoundingClientRect();
-
-      // Posición relativa respecto de TEO
-      const relativeX =
-        layerRect.left - sourceRect.left;
-
-      const relativeY =
-        layerRect.top - sourceRect.top;
-
-      // Convertir a coordenadas del canvas
-      const x =
-        rx + (relativeX * scaleX);
-
-      const y =
-        ry + (relativeY * scaleY);
-
-      const width =
-        layerRect.width * scaleX;
-
-      const height =
-        layerRect.height * scaleY;
-
-      ctx.drawImage(
-        img,
-        x,
-        y,
-        width,
-        height
-      );
-    });
-  }
-
-  // ==========================================
-  // 7. DIBUJAR TEO
-  // ==========================================
-
+  // 4. SECUENCIA DE RENDERIZADO EN EL CANVAS
   loadImage(source.src)
     .then(baseImg => {
+      // Dibujar base de TEO
+      ctx.drawImage(baseImg, teoX, teoY, teoW, teoH);
 
-      ctx.drawImage(
-        baseImg,
-        rx,
-        ry,
-        rw,
-        rh
-      );
-
-      // ========================================
-      // 8. DIBUJAR REMERA
-      // ========================================
-
-      return drawLayer(activeTopImg);
-    })
-
-    // ==========================================
-    // 9. DIBUJAR ACCESORIO
-    // ==========================================
-
-    .then(() => {
-
-      return drawLayer(activeHeadImg);
-    })
-
-    // ==========================================
-    // 10. PIE DE FOTO
-    // ==========================================
-
-    .then(() => {
-
-      ctx.font = '600 15px "Fredoka", sans-serif';
-      ctx.fillStyle = '#94A3B8';
-
-      ctx.fillText(
-        'Proyecto Final de Carrera - UNLaM',
-        canvas.width / 2,
-        690
-      );
-
-      // ========================================
-      // 11. EXPORTAR
-      // ========================================
-
-      try {
-
-        const dataUrl =
-          canvas.toDataURL('image/png');
-
-        const link =
-          document.createElement('a');
-
-        link.download =
-          `Mi_TEO_${currentChildProfile.name || 'Personalizado'}_${Date.now()}.png`;
-
-        link.href = dataUrl;
-
-        document.body.appendChild(link);
-
-        link.click();
-
-        document.body.removeChild(link);
-
-        showToast(
-          '📸 ¡Foto de recuerdo descargada con éxito!'
-        );
-
-      } catch (e) {
-
-        console.error(
-          'Error al exportar la foto:',
-          e
-        );
-
-        showToast(
-          'No se pudo generar la foto.'
-        );
+      // Dibujar remera si está seleccionada (ajustada exactamente al torso)
+      if (activeTopImg && activeTopImg.src) {
+        return loadImage(activeTopImg.src).then(topImg => {
+          ctx.drawImage(topImg, teoX + 90, teoY + 130, 140, 130);
+        });
       }
     })
+    .then(() => {
+      // Dibujar accesorio/sombrero si está seleccionado (ajustado exactamente a la cabeza)
+      if (activeHeadImg && activeHeadImg.src) {
+        return loadImage(activeHeadImg.src).then(headImg => {
+          ctx.drawImage(headImg, teoX + 70, teoY - 15, 180, 90);
+        });
+      }
+    })
+    .then(() => {
+      // 5. PIE DE FOTO
+      ctx.font = '600 15px "Fredoka", sans-serif';
+      ctx.fillStyle = '#94A3B8';
+      ctx.fillText('Proyecto Final de Carrera - UNLaM', canvas.width / 2, 690);
 
+      // 6. DESCARGAR ARCHIVO PNG
+      try {
+        const dataUrl = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.download = `Mi_TEO_${currentChildProfile.name || 'Personalizado'}_${Date.now()}.png`;
+        link.href = dataUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        showToast('📸 ¡Foto de recuerdo descargada con éxito!');
+      } catch (e) {
+        console.error('Error al exportar la foto:', e);
+        showToast('No se pudo generar la foto.');
+      }
+    })
     .catch(error => {
-
-      console.error(
-        'Error al generar la imagen:',
-        error
-      );
-
-      showToast(
-        'No se pudo generar la foto.'
-      );
+      console.error('Error al generar la imagen:', error);
+      showToast('No se pudo generar la foto.');
     });
+}
+
+function exportTeoPhoto() {
+  exportTeoPhotoDirectly();
 }
 
 function restartAndPlayAgain() {
@@ -811,57 +665,6 @@ function restartAndPlayAgain() {
   setTimeout(() => playTone(660, 'sine', 0.2), 100);
   speakTeo('¡Genial! ¡Vamos a jugar otra vez! ✨', 'restart');
   showToast('¡Listo para jugar una vez más!');
-}
-
-/* =========================================================================
-   PHOTO EXPORT SYSTEM (CANVAS FALLBACK)
-   ========================================================================= */
-function exportTeoPhoto() {
-  playTone(800, 'triangle', 0.2);
-  const canvas = document.getElementById('snapshotCanvas');
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#F0F7FF';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.strokeStyle = '#CBD5E1';
-  ctx.lineWidth = 8;
-  ctx.strokeRect(16, 16, canvas.width - 32, canvas.height - 32);
-  ctx.fillStyle = '#1E293B';
-  ctx.font = 'bold 30px "Fredoka", sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('¡Mi Amigo TEO!', canvas.width / 2, 65);
-
-  const source = STATE.isRealPhotoActive
-    ? document.getElementById('teoRealPhoto')
-    : document.getElementById('teoDrawingImage');
-  if (!source || !source.complete || !source.naturalWidth) {
-    showToast('La imagen de TEO todavía no está lista.');
-    return;
-  }
-  ctx.drawImage(source, 160, 130, 320, 420);
-
-  const layers = [
-    document.querySelector('#layerTop img'),
-    document.querySelector('#layerHead img')
-  ].filter((image) => image && image.complete && image.naturalWidth);
-  //layers.forEach((image) => ctx.drawImage(image, 160, 130, 320, 420));
-  // TEO: imagen base
-  ctx.drawImage(teoImage, 160, 130, 320, 420);
-
-  // Remera: más pequeña y ubicada sobre el torso
-  ctx.drawImage(shirtImage, 215, 270, 176, 160);
-
-  // Accesorio: más pequeño y ubicado sobre la cabeza
-  ctx.drawImage(accessoryImage, 245, 135, 256, 92);
-
-  ctx.font = '600 15px "Fredoka", sans-serif';
-  ctx.fillStyle = '#94A3B8';
-  ctx.fillText('Proyecto Final de Carrera - UNLaM', canvas.width / 2, 720);
-
-  const link = document.createElement('a');
-  link.download = `Mi_TEO_Personalizado_${Date.now()}.png`;
-  link.href = canvas.toDataURL('image/png');
-  link.click();
-  showToast('📸 ¡Foto descargada!');
 }
 
 function initActions() {
