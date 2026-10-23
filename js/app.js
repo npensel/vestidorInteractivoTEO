@@ -848,10 +848,10 @@ function exportTeoPhoto() {
   ctx.drawImage(teoImage, 160, 130, 320, 420);
 
   // Remera: más pequeña y ubicada sobre el torso
-  ctx.drawImage(shirtImage, 215, 270, 210, 180);
+  ctx.drawImage(shirtImage, 215, 270, 105, 90);
 
   // Accesorio: más pequeño y ubicado sobre la cabeza
-  ctx.drawImage(accessoryImage, 245, 135, 150, 100);
+  ctx.drawImage(accessoryImage, 245, 135, 75, 50);
 
   ctx.font = '600 15px "Fredoka", sans-serif';
   ctx.fillStyle = '#94A3B8';
