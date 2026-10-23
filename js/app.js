@@ -542,104 +542,262 @@ function downloadFromConfirm() {
 
 function exportTeoPhotoDirectly() {
   playTone(800, 'triangle', 0.2);
-  
+
   const canvas = document.getElementById('snapshotCanvas');
+
   if (!canvas) {
     showToast('No se encontró el lienzo para la foto.');
     return;
   }
-  
+
   const ctx = canvas.getContext('2d');
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
-  // 1. Fondo y Marco estético
+
+  // ==========================================
+  // 1. FONDO Y MARCO
+  // ==========================================
+
   ctx.fillStyle = '#F0F7FF';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+
   ctx.strokeStyle = '#CBD5E1';
   ctx.lineWidth = 8;
-  ctx.strokeRect(16, 16, canvas.width - 32, canvas.height - 32);
-  
-  // 2. Título superior
+  ctx.strokeRect(
+    16,
+    16,
+    canvas.width - 32,
+    canvas.height - 32
+  );
+
+  // ==========================================
+  // 2. TÍTULO
+  // ==========================================
+
   ctx.fillStyle = '#1E293B';
   ctx.font = 'bold 30px "Fredoka", sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('¡Mi Amigo TEO!', canvas.width / 2, 65);
 
-  // Coordenadas base para TEO
-  const rx = 160;
-  const ry = 110;
-  const rw = 320;
-  const rh = 420;
+  ctx.fillText(
+    '¡Mi Amigo TEO!',
+    canvas.width / 2,
+    65
+  );
+
+  // ==========================================
+  // 3. ELEMENTOS ACTUALES
+  // ==========================================
 
   const source = STATE.isRealPhotoActive
     ? document.getElementById('teoRealPhoto')
     : document.getElementById('teoDrawingImage');
 
-  const activeTopImg = document.querySelector('#layerTop img');
-  const activeHeadImg = document.querySelector('#layerHead img');
+  const activeTopImg =
+    document.querySelector('#layerTop img');
 
-  const finalizeExport = () => {
-    ctx.font = '600 15px "Fredoka", sans-serif';
-    ctx.fillStyle = '#94A3B8';
-    ctx.fillText('Proyecto Final de Carrera - UNLaM', canvas.width / 2, 690);
+  const activeHeadImg =
+    document.querySelector('#layerHead img');
 
-    try {
-      const dataUrl = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.download = `Mi_TEO_${currentChildProfile.name || 'Personalizado'}_${Date.now()}.png`;
-      link.href = dataUrl;
-      link.target = '_blank';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      showToast('📸 ¡Foto de recuerdo descargada con éxito!');
-    } catch (e) {
-      console.error('Error al exportar la foto:', e);
-      showToast('No se pudo generar la foto.');
+  if (!source || !source.src) {
+    showToast('No se encontró la imagen de TEO.');
+    return;
+  }
+
+  // ==========================================
+  // 4. ÁREA DE TEO EN LA PANTALLA
+  // ==========================================
+
+  const sourceRect = source.getBoundingClientRect();
+
+  // Área donde queremos dibujar TEO en la foto exportada
+  const rx = 160;
+  const ry = 110;
+  const rw = 320;
+  const rh = 420;
+
+  /*
+   * Factor de conversión entre:
+   *   - píxeles de la pantalla
+   *   - píxeles del canvas exportado
+   */
+  const scaleX = rw / sourceRect.width;
+  const scaleY = rh / sourceRect.height;
+
+  // ==========================================
+  // 5. CARGADOR DE IMÁGENES
+  // ==========================================
+
+  function loadImage(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+
+      img.crossOrigin = 'anonymous';
+
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error(`No se pudo cargar: ${src}`));
+
+      img.src = src;
+    });
+  }
+
+  // ==========================================
+  // 6. DIBUJAR CAPA RESPETANDO SU POSICIÓN
+  // ==========================================
+
+  function drawLayer(imgElement, layerElement) {
+    if (!imgElement || !imgElement.src || !layerElement) {
+      return Promise.resolve();
     }
-  };
 
-  if (source && source.src) {
-    const baseImg = new Image();
-    baseImg.crossOrigin = 'anonymous';
-    baseImg.onload = () => {
-      // Dibujar la base de TEO
-      ctx.drawImage(baseImg, rx, ry, rw, rh);
+    return loadImage(imgElement.src).then(img => {
 
-      // Dibujar remera con dimensiones exactas
-      if (activeTopImg && activeTopImg.src) {
-        const topImg = new Image();
-        topImg.crossOrigin = 'anonymous';
-        topImg.onload = () => {
-          ctx.drawImage(topImg, rx, ry, rw, rh);
-          drawHeadAccessory();
-        };
-        topImg.onerror = () => drawHeadAccessory();
-        topImg.src = activeTopImg.src;
-      } else {
-        drawHeadAccessory();
+      const layerRect =
+        layerElement.getBoundingClientRect();
+
+      /*
+       * Posición de la capa respecto de TEO
+       */
+      const relativeX =
+        layerRect.left - sourceRect.left;
+
+      const relativeY =
+        layerRect.top - sourceRect.top;
+
+      /*
+       * Convertimos la posición de pantalla
+       * a la posición correspondiente en el canvas.
+       */
+      const x =
+        rx + (relativeX * scaleX);
+
+      const y =
+        ry + (relativeY * scaleY);
+
+      const width =
+        layerRect.width * scaleX;
+
+      const height =
+        layerRect.height * scaleY;
+
+      ctx.drawImage(
+        img,
+        x,
+        y,
+        width,
+        height
+      );
+    });
+  }
+
+  // ==========================================
+  // 7. DIBUJAR TEO
+  // ==========================================
+
+  loadImage(source.src)
+    .then(baseImg => {
+
+      ctx.drawImage(
+        baseImg,
+        rx,
+        ry,
+        rw,
+        rh
+      );
+
+      // ========================================
+      // 8. DIBUJAR REMERA
+      // ========================================
+
+      const topLayer =
+        document.getElementById('layerTop');
+
+      return drawLayer(
+        activeTopImg,
+        topLayer
+      );
+    })
+
+    // ==========================================
+    // 9. DIBUJAR ACCESORIO
+    // ==========================================
+
+    .then(() => {
+
+      const headLayer =
+        document.getElementById('layerHead');
+
+      return drawLayer(
+        activeHeadImg,
+        headLayer
+      );
+    })
+
+    // ==========================================
+    // 10. PIE DE FOTO
+    // ==========================================
+
+    .then(() => {
+
+      ctx.font = '600 15px "Fredoka", sans-serif';
+      ctx.fillStyle = '#94A3B8';
+
+      ctx.fillText(
+        'Proyecto Final de Carrera - UNLaM',
+        canvas.width / 2,
+        690
+      );
+
+      // ========================================
+      // 11. EXPORTAR
+      // ========================================
+
+      try {
+
+        const dataUrl =
+          canvas.toDataURL('image/png');
+
+        const link =
+          document.createElement('a');
+
+        link.download =
+          `Mi_TEO_${currentChildProfile.name || 'Personalizado'}_${Date.now()}.png`;
+
+        link.href = dataUrl;
+
+        document.body.appendChild(link);
+
+        link.click();
+
+        document.body.removeChild(link);
+
+        showToast(
+          '📸 ¡Foto de recuerdo descargada con éxito!'
+        );
+
+      } catch (e) {
+
+        console.error(
+          'Error al exportar la foto:',
+          e
+        );
+
+        showToast(
+          'No se pudo generar la foto.'
+        );
       }
-    };
-    baseImg.src = source.src;
-  }
+    })
 
-  function drawHeadAccessory() {
-    if (activeHeadImg && activeHeadImg.src) {
-      const headImg = new Image();
-      headImg.crossOrigin = 'anonymous';
-      headImg.onload = () => {
-        // Reducimos ligeramente el tamaño y ajustamos la posición vertical de la corona/gorro
-        // para que no tape la cara y encaje perfecto arriba
-        const accessoryOffset = 10;
-        ctx.drawImage(headImg, rx, ry - accessoryOffset, rw, rh);
-        finalizeExport();
-      };
-      headImg.onerror = () => finalizeExport();
-      headImg.src = activeHeadImg.src;
-    } else {
-      finalizeExport();
-    }
-  }
+    .catch(error => {
+
+      console.error(
+        'Error al generar la imagen:',
+        error
+      );
+
+      showToast(
+        'No se pudo generar la foto.'
+      );
+    });
 }
 
 function restartAndPlayAgain() {
