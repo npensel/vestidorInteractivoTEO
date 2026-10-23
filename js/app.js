@@ -541,7 +541,7 @@ function downloadFromConfirm() {
 }
 
 /* =========================================================================
-   PHOTO EXPORT SYSTEM (DEFINITIVO Y AJUSTADO)
+   PHOTO EXPORT SYSTEM (DEFINITIVO - CAPAS DE TAMAÑO COMPLETO)
    ========================================================================= */
 function exportTeoPhotoDirectly() {
   playTone(800, 'triangle', 0.2);
@@ -605,7 +605,7 @@ function exportTeoPhotoDirectly() {
       // Dibujar base de TEO
       ctx.drawImage(baseImg, teoX, teoY, teoW, teoH);
 
-      // Dibujar remera
+      // Dibujar remera (al ser PNG transparente de tamaño completo, usa las mismas coordenadas)
       if (activeTopImg && activeTopImg.src) {
         return loadImage(activeTopImg.src).then(topImg => {
           ctx.drawImage(topImg, teoX, teoY, teoW, teoH);
@@ -613,11 +613,10 @@ function exportTeoPhotoDirectly() {
       }
     })
     .then(() => {
-      // Dibujar accesorio / sombrero con el ajuste fino de -14px para calzar perfecto
+      // Dibujar accesorio / sombrero (también PNG transparente de tamaño completo)
       if (activeHeadImg && activeHeadImg.src) {
         return loadImage(activeHeadImg.src).then(headImg => {
-          const headOffsetY = -14;
-          ctx.drawImage(headImg, teoX, teoY + headOffsetY, teoW, teoH);
+          ctx.drawImage(headImg, teoX, teoY, teoW, teoH);
         });
       }
     })
