@@ -543,45 +543,24 @@ function downloadFromConfirm() {
 function exportTeoPhotoDirectly() {
   playTone(800, 'triangle', 0.2);
   
-  const canvas = document.getElementById('snapshotCanvas');
-  if (!canvas) {
-    showToast('No se encontró el lienzo para la foto.');
+  // Seleccionamos exactamente el contenedor visual de TEO en la pantalla
+  const targetElement = document.querySelector('.mobile-frame') || document.getElementById('teoContainer') || document.querySelector('.character-container');
+  
+  if (!targetElement) {
+    showToast('No se encontró el contenedor de TEO para fotografiar.');
     return;
   }
-  
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
-  // 1. Fondo y Marco estético general de la postal
-  ctx.fillStyle = '#F0F7FF';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.strokeStyle = '#CBD5E1';
-  ctx.lineWidth = 8;
-  ctx.strokeRect(16, 16, canvas.width - 32, canvas.height - 32);
-  
-  // 2. Título superior
-  ctx.fillStyle = '#1E293B';
-  ctx.font = 'bold 30px "Fredoka", sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('¡Mi Amigo TEO!', canvas.width / 2, 65);
 
-  // 3. Obtener las imágenes actuales renderizadas en la interfaz
-  const source = STATE.isRealPhotoActive
-    ? document.getElementById('teoRealPhoto')
-    : document.getElementById('teoDrawingImage');
+  showToast('📸 Generando foto de recuerdo...');
 
-  const activeTopImg = document.querySelector('#layerTop img');
-  const activeHeadImg = document.querySelector('#layerHead img');
-
-  // Función para disparar la descarga una vez que todo está en su escala correcta
-  const triggerDownload = () => {
-    // Pie de página institucional
-    ctx.font = '600 15px "Fredoka", sans-serif';
-    ctx.fillStyle = '#94A3B8';
-    ctx.fillText('Proyecto Final de Carrera - UNLaM', canvas.width / 2, 690);
-
+  // Usamos html2canvas para capturar tal cual lo ve el usuario en la interfaz
+  html2canvas(targetElement, {
+    scale: 2, // Mejora la nitidez de la imagen exportada
+    useCORS: true,
+    backgroundColor: '#F0F7FF'
+  }).then(renderedCanvas => {
     try {
-      const dataUrl = canvas.toDataURL('image/png');
+      const dataUrl = renderedCanvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.download = `Mi_TEO_${currentChildProfile.name || 'Personalizado'}_${Date.now()}.png`;
       link.href = dataUrl;
@@ -589,62 +568,15 @@ function exportTeoPhotoDirectly() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      showToast('📸 ¡Foto de recuerdo descargada con éxito!');
+      showToast('✨ ¡Foto de recuerdo descargada con éxito!');
     } catch (e) {
-      console.error('Error al exportar el canvas:', e);
+      console.error('Error al exportar la captura de pantalla:', e);
       showToast('No se pudo generar la foto.');
     }
-  };
-
-  // 4. Dibujar con las proporciones correctas y centradas (evitando el efecto remera gigante)
-  if (source && source.src) {
-    const baseImg = new Image();
-    baseImg.crossOrigin = 'anonymous';
-    baseImg.onload = () => {
-      // Coordenadas equilibradas para que TEO quede bien proporcionado en el centro
-      const renderX = 180;
-      const renderY = 130;
-      const renderW = 280;
-      const renderH = 380;
-
-      // Dibujar base de TEO
-      ctx.drawImage(baseImg, renderX, renderY, renderW, renderH);
-
-      // Dibujar remera respetando la misma proporción exacta de TEO
-      if (activeTopImg && activeTopImg.src) {
-        const topImg = new Image();
-        topImg.crossOrigin = 'anonymous';
-        topImg.onload = () => {
-          ctx.drawImage(topImg, renderX, renderY, renderW, renderH);
-          
-          // Dibujar gorro/accesorio si existe
-          if (activeHeadImg && activeHeadImg.src) {
-            const headImg = new Image();
-            headImg.crossOrigin = 'anonymous';
-            headImg.onload = () => {
-              ctx.drawImage(headImg, renderX, renderY, renderW, renderH);
-              triggerDownload();
-            };
-            headImg.src = activeHeadImg.src;
-          } else {
-            triggerDownload();
-          }
-        };
-        topImg.src = activeTopImg.src;
-      } else if (activeHeadImg && activeHeadImg.src) {
-        const headImg = new Image();
-        headImg.crossOrigin = 'anonymous';
-        headImg.onload = () => {
-          ctx.drawImage(headImg, renderX, renderY, renderW, renderH);
-          triggerDownload();
-        };
-        headImg.src = activeHeadImg.src;
-      } else {
-        triggerDownload();
-      }
-    };
-    baseImg.src = source.src;
-  }
+  }).catch(err => {
+    console.error('Error en html2canvas:', err);
+    showToast('Error al capturar la imagen.');
+  });
 }
 
 function restartAndPlayAgain() {
