@@ -552,7 +552,7 @@ function exportTeoPhotoDirectly() {
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   
-  // 1. Fondo y Marco estético de la postal
+  // 1. Fondo y Marco estético
   ctx.fillStyle = '#F0F7FF';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.strokeStyle = '#CBD5E1';
@@ -565,13 +565,12 @@ function exportTeoPhotoDirectly() {
   ctx.textAlign = 'center';
   ctx.fillText('¡Mi Amigo TEO!', canvas.width / 2, 65);
 
-  // Coordenadas equilibradas estándar para TEO
+  // Coordenadas base para TEO
   const rx = 160;
   const ry = 110;
   const rw = 320;
   const rh = 420;
 
-  // 3. Tomar los elementos activos en pantalla
   const source = STATE.isRealPhotoActive
     ? document.getElementById('teoRealPhoto')
     : document.getElementById('teoDrawingImage');
@@ -600,14 +599,14 @@ function exportTeoPhotoDirectly() {
     }
   };
 
-  // Cargar en orden estricto de capas: Base de TEO -> Remera -> Accesorio de Cabeza (Corona/Gorros)
   if (source && source.src) {
     const baseImg = new Image();
     baseImg.crossOrigin = 'anonymous';
     baseImg.onload = () => {
+      // Dibujar la base de TEO
       ctx.drawImage(baseImg, rx, ry, rw, rh);
 
-      // Segundo: Dibujar la remera (capa intermedia)
+      // Dibujar remera con dimensiones exactas
       if (activeTopImg && activeTopImg.src) {
         const topImg = new Image();
         topImg.crossOrigin = 'anonymous';
@@ -624,13 +623,15 @@ function exportTeoPhotoDirectly() {
     baseImg.src = source.src;
   }
 
-  // Tercero: Dibujar el accesorio de cabeza al final para que NUNCA quede tapado por la remera
   function drawHeadAccessory() {
     if (activeHeadImg && activeHeadImg.src) {
       const headImg = new Image();
       headImg.crossOrigin = 'anonymous';
       headImg.onload = () => {
-        ctx.drawImage(headImg, rx, ry, rw, rh);
+        // Reducimos ligeramente el tamaño y ajustamos la posición vertical de la corona/gorro
+        // para que no tape la cara y encaje perfecto arriba
+        const accessoryOffset = 10;
+        ctx.drawImage(headImg, rx, ry - accessoryOffset, rw, rh);
         finalizeExport();
       };
       headImg.onerror = () => finalizeExport();
@@ -640,6 +641,7 @@ function exportTeoPhotoDirectly() {
     }
   }
 }
+
 function restartAndPlayAgain() {
   closeConfirmModalDirect();
 
