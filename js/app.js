@@ -565,13 +565,13 @@ function exportTeoPhotoDirectly() {
   ctx.textAlign = 'center';
   ctx.fillText('¡Mi Amigo TEO!', canvas.width / 2, 65);
 
-  // Coordenadas fijas estándar y equilibradas para centrar a TEO y su ropa
+  // Coordenadas equilibradas estándar para TEO
   const rx = 160;
   const ry = 110;
   const rw = 320;
   const rh = 420;
 
-  // 3. Tomar la imagen base activa (Real o Dibujo)
+  // 3. Tomar los elementos activos en pantalla
   const source = STATE.isRealPhotoActive
     ? document.getElementById('teoRealPhoto')
     : document.getElementById('teoDrawingImage');
@@ -579,7 +579,6 @@ function exportTeoPhotoDirectly() {
   const activeTopImg = document.querySelector('#layerTop img');
   const activeHeadImg = document.querySelector('#layerHead img');
 
-  // Función para finalizar y descargar el archivo de forma segura
   const finalizeExport = () => {
     ctx.font = '600 15px "Fredoka", sans-serif';
     ctx.fillStyle = '#94A3B8';
@@ -601,50 +600,46 @@ function exportTeoPhotoDirectly() {
     }
   };
 
-  // Cargar y dibujar en orden correcto: Base -> Remera -> Accesorio de cabeza
+  // Cargar en orden estricto de capas: Base de TEO -> Remera -> Accesorio de Cabeza (Corona/Gorros)
   if (source && source.src) {
     const baseImg = new Image();
     baseImg.crossOrigin = 'anonymous';
     baseImg.onload = () => {
       ctx.drawImage(baseImg, rx, ry, rw, rh);
 
-      // Dibujar remera si existe
+      // Segundo: Dibujar la remera (capa intermedia)
       if (activeTopImg && activeTopImg.src) {
         const topImg = new Image();
         topImg.crossOrigin = 'anonymous';
         topImg.onload = () => {
           ctx.drawImage(topImg, rx, ry, rw, rh);
-          
-          // Dibujar accesorios/auriculares si existen
-          if (activeHeadImg && activeHeadImg.src) {
-            const headImg = new Image();
-            headImg.crossOrigin = 'anonymous';
-            headImg.onload = () => {
-              ctx.drawImage(headImg, rx, ry, rw, rh);
-              finalizeExport();
-            };
-            headImg.src = activeHeadImg.src;
-          } else {
-            finalizeExport();
-          }
+          drawHeadAccessory();
         };
+        topImg.onerror = () => drawHeadAccessory();
         topImg.src = activeTopImg.src;
-      } else if (activeHeadImg && activeHeadImg.src) {
-        const headImg = new Image();
-        headImg.crossOrigin = 'anonymous';
-        headImg.onload = () => {
-          ctx.drawImage(headImg, rx, ry, rw, rh);
-          finalizeExport();
-        };
-        headImg.src = activeHeadImg.src;
       } else {
-        finalizeExport();
+        drawHeadAccessory();
       }
     };
     baseImg.src = source.src;
   }
-}
 
+  // Tercero: Dibujar el accesorio de cabeza al final para que NUNCA quede tapado por la remera
+  function drawHeadAccessory() {
+    if (activeHeadImg && activeHeadImg.src) {
+      const headImg = new Image();
+      headImg.crossOrigin = 'anonymous';
+      headImg.onload = () => {
+        ctx.drawImage(headImg, rx, ry, rw, rh);
+        finalizeExport();
+      };
+      headImg.onerror = () => finalizeExport();
+      headImg.src = activeHeadImg.src;
+    } else {
+      finalizeExport();
+    }
+  }
+}
 function restartAndPlayAgain() {
   closeConfirmModalDirect();
 
