@@ -541,7 +541,7 @@ function downloadFromConfirm() {
 }
 
 /* =========================================================================
-   PHOTO EXPORT SYSTEM (DEFINITIVO Y PROPORCIONAL)
+   PHOTO EXPORT SYSTEM (DEFINITIVO - CAPAS DE TAMAÑO COMPLETO)
    ========================================================================= */
 function exportTeoPhotoDirectly() {
   playTone(800, 'triangle', 0.2);
@@ -605,32 +605,18 @@ function exportTeoPhotoDirectly() {
       // Dibujar base de TEO
       ctx.drawImage(baseImg, teoX, teoY, teoW, teoH);
 
-      // Dibujar remera respetando sus proporciones originales y ubicándola en el pecho
+      // Dibujar remera (al ser PNG transparente de tamaño completo, usa las mismas coordenadas)
       if (activeTopImg && activeTopImg.src) {
         return loadImage(activeTopImg.src).then(topImg => {
-          const ratio = topImg.naturalWidth / topImg.naturalHeight;
-          const targetW = 200; // Ancho base para la remera
-          const targetH = targetW / ratio; // Alto proporcional automático
-          
-          const posX = teoX + (teoW - targetW) / 2;
-          const posY = teoY + 200; // Ubicada exactamente en el pecho
-
-          ctx.drawImage(topImg, posX, posY, targetW, targetH);
+          ctx.drawImage(topImg, teoX, teoY, teoW, teoH);
         });
       }
     })
     .then(() => {
-      // Dibujar accesorio respetando sus proporciones originales y ubicándolo en la cabeza
+      // Dibujar accesorio / sombrero (también PNG transparente de tamaño completo)
       if (activeHeadImg && activeHeadImg.src) {
         return loadImage(activeHeadImg.src).then(headImg => {
-          const ratio = headImg.naturalWidth / headImg.naturalHeight;
-          const targetW = 220; // Ancho base para el accesorio
-          const targetH = targetW / ratio; // Alto proporcional automático
-
-          const posX = teoX + (teoW - targetW) / 2;
-          const posY = teoY - 15; // Ubicado sobre la cabeza/orejas
-
-          ctx.drawImage(headImg, posX, posY, targetW, targetH);
+          ctx.drawImage(headImg, teoX, teoY, teoW, teoH);
         });
       }
     })
