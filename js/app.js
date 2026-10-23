@@ -541,7 +541,7 @@ function downloadFromConfirm() {
 }
 
 /* =========================================================================
-   PHOTO EXPORT SYSTEM (CORREGIDO PARA CAPTURA PERFECTA)
+   PHOTO EXPORT SYSTEM (DEFINITIVO Y PROPORCIONAL)
    ========================================================================= */
 function exportTeoPhotoDirectly() {
   playTone(800, 'triangle', 0.2);
@@ -569,7 +569,7 @@ function exportTeoPhotoDirectly() {
   ctx.textAlign = 'center';
   ctx.fillText('¡Mi Amigo TEO!', canvas.width / 2, 65);
 
-  // 3. OBTENER LAS IMÁGENES ACTIVAS
+  // 3. OBTENER LAS IMÁGENES ACTIVAS EN PANTALLA
   const source = STATE.isRealPhotoActive
     ? document.getElementById('teoRealPhoto')
     : document.getElementById('teoDrawingImage');
@@ -582,7 +582,7 @@ function exportTeoPhotoDirectly() {
     return;
   }
 
-  // Función auxiliar para cargar imágenes de forma segura con soporte CORS
+  // Función auxiliar para cargar imágenes con CORS
   function loadImage(src) {
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -593,30 +593,44 @@ function exportTeoPhotoDirectly() {
     });
   }
 
-  // Coordenadas base donde se dibuja a TEO en el canvas de exportación (ancho: 320, alto: 420)
+  // Coordenadas base de TEO en el canvas de exportación (ancho: 320, alto: 420)
   const teoX = 160;
   const teoY = 110;
   const teoW = 320;
   const teoH = 420;
 
-  // 4. SECUENCIA DE RENDERIZADO EN EL CANVAS
+  // 4. SECUENCIA DE RENDERIZADO
   loadImage(source.src)
     .then(baseImg => {
       // Dibujar base de TEO
       ctx.drawImage(baseImg, teoX, teoY, teoW, teoH);
 
-      // Dibujar remera si está seleccionada (ajustada exactamente al torso)
+      // Dibujar remera respetando sus proporciones originales y ubicándola en el pecho
       if (activeTopImg && activeTopImg.src) {
         return loadImage(activeTopImg.src).then(topImg => {
-          ctx.drawImage(topImg, teoX + 90, teoY + 130, 140, 130);
+          const ratio = topImg.naturalWidth / topImg.naturalHeight;
+          const targetW = 200; // Ancho base para la remera
+          const targetH = targetW / ratio; // Alto proporcional automático
+          
+          const posX = teoX + (teoW - targetW) / 2;
+          const posY = teoY + 200; // Ubicada exactamente en el pecho
+
+          ctx.drawImage(topImg, posX, posY, targetW, targetH);
         });
       }
     })
     .then(() => {
-      // Dibujar accesorio/sombrero si está seleccionado (ajustado exactamente a la cabeza)
+      // Dibujar accesorio respetando sus proporciones originales y ubicándolo en la cabeza
       if (activeHeadImg && activeHeadImg.src) {
         return loadImage(activeHeadImg.src).then(headImg => {
-          ctx.drawImage(headImg, teoX + 70, teoY - 15, 180, 90);
+          const ratio = headImg.naturalWidth / headImg.naturalHeight;
+          const targetW = 220; // Ancho base para el accesorio
+          const targetH = targetW / ratio; // Alto proporcional automático
+
+          const posX = teoX + (teoW - targetW) / 2;
+          const posY = teoY - 15; // Ubicado sobre la cabeza/orejas
+
+          ctx.drawImage(headImg, posX, posY, targetW, targetH);
         });
       }
     })
