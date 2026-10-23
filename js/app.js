@@ -64,19 +64,29 @@ function speakTeo(text, audioKey = text) {
   if (!STATE.soundEnabled) return;
   if (!STATE.teoVoiceEnabled) return;
 
-  /*const audioSrc = typeof TEO_AUDIO !== 'undefined' ? TEO_AUDIO[audioKey] : null;
+  // 1. Intentar reproducir el audio grabado local (.mp3) utilizando la carpeta audio/teo
+  const audioSrc = typeof TEO_AUDIO !== 'undefined' ? TEO_AUDIO[audioKey] : null;
   if (audioSrc) {
-    if (currentVoiceAudio) {
+    if (typeof currentVoiceAudio !== 'undefined' && currentVoiceAudio) {
       currentVoiceAudio.pause();
       currentVoiceAudio.currentTime = 0;
     }
     currentVoiceAudio = new Audio(audioSrc);
-    currentVoiceAudio.play().catch(() => {
-      console.warn(`No se pudo reproducir el audio de TEO: ${audioSrc}`);
+    currentVoiceAudio.play().then(() => {
+      console.log(`🔊 Reproduciendo audio local: ${audioSrc}`);
+    }).catch((err) => {
+      console.warn(`No se pudo reproducir el audio ${audioSrc}, usando voz sintética:`, err);
+      speakWithSpeechSynthesis(text);
     });
     return;
-  }*/
+  }
 
+  // 2. Respaldo por síntesis de voz del navegador si no hay archivo de audio asociado
+  speakWithSpeechSynthesis(text);
+}
+
+// Función auxiliar para manejar la síntesis de voz nativa de respaldo
+function speakWithSpeechSynthesis(text) {
   if ('speechSynthesis' in window) {
     try {
       window.speechSynthesis.cancel();
