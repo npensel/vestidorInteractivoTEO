@@ -843,7 +843,15 @@ function exportTeoPhoto() {
     document.querySelector('#layerTop img'),
     document.querySelector('#layerHead img')
   ].filter((image) => image && image.complete && image.naturalWidth);
-  layers.forEach((image) => ctx.drawImage(image, 160, 130, 320, 420));
+  //layers.forEach((image) => ctx.drawImage(image, 160, 130, 320, 420));
+  // TEO: imagen base
+  ctx.drawImage(teoImage, 160, 130, 320, 420);
+
+  // Remera: más pequeña y ubicada sobre el torso
+  ctx.drawImage(shirtImage, 215, 270, 210, 180);
+
+  // Accesorio: más pequeño y ubicado sobre la cabeza
+  ctx.drawImage(accessoryImage, 245, 135, 150, 100);
 
   ctx.font = '600 15px "Fredoka", sans-serif';
   ctx.fillStyle = '#94A3B8';
