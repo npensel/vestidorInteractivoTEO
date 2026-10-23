@@ -604,22 +604,19 @@ function exportTeoPhotoDirectly() {
   }
 
   // ==========================================
-  // 4. ÁREA DE TEO EN LA PANTALLA
+  // 4. POSICIÓN DE TEO EN LA EXPORTACIÓN
   // ==========================================
 
-  const sourceRect = source.getBoundingClientRect();
-
-  // Área donde queremos dibujar TEO en la foto exportada
   const rx = 160;
   const ry = 110;
   const rw = 320;
   const rh = 420;
 
-  /*
-   * Factor de conversión entre:
-   *   - píxeles de la pantalla
-   *   - píxeles del canvas exportado
-   */
+  // Rectángulo REAL de TEO en pantalla
+  const sourceRect = source.getBoundingClientRect();
+
+  // Escala entre la representación de TEO
+  // en pantalla y la representación en canvas
   const scaleX = rw / sourceRect.width;
   const scaleY = rh / sourceRect.height;
 
@@ -634,39 +631,52 @@ function exportTeoPhotoDirectly() {
       img.crossOrigin = 'anonymous';
 
       img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error(`No se pudo cargar: ${src}`));
+
+      img.onerror = () => {
+        reject(new Error(`No se pudo cargar la imagen: ${src}`));
+      };
 
       img.src = src;
     });
   }
 
   // ==========================================
-  // 6. DIBUJAR CAPA RESPETANDO SU POSICIÓN
+  // 6. DIBUJAR UNA CAPA USANDO EL <img> REAL
   // ==========================================
 
-  function drawLayer(imgElement, layerElement) {
-    if (!imgElement || !imgElement.src || !layerElement) {
+  function drawLayer(imgElement) {
+
+    if (!imgElement || !imgElement.src) {
       return Promise.resolve();
     }
 
     return loadImage(imgElement.src).then(img => {
 
-      const layerRect =
-        layerElement.getBoundingClientRect();
-
       /*
-       * Posición de la capa respecto de TEO
+       * IMPORTANTE:
+       * usamos el getBoundingClientRect() DEL IMG,
+       * no el del div contenedor.
+       *
+       * Esto permite respetar:
+       * - width
+       * - height
+       * - transform
+       * - scale
+       * - translate
+       * - posición real en pantalla
        */
+
+      const layerRect =
+        imgElement.getBoundingClientRect();
+
+      // Posición relativa respecto de TEO
       const relativeX =
         layerRect.left - sourceRect.left;
 
       const relativeY =
         layerRect.top - sourceRect.top;
 
-      /*
-       * Convertimos la posición de pantalla
-       * a la posición correspondiente en el canvas.
-       */
+      // Convertir a coordenadas del canvas
       const x =
         rx + (relativeX * scaleX);
 
@@ -708,13 +718,7 @@ function exportTeoPhotoDirectly() {
       // 8. DIBUJAR REMERA
       // ========================================
 
-      const topLayer =
-        document.getElementById('layerTop');
-
-      return drawLayer(
-        activeTopImg,
-        topLayer
-      );
+      return drawLayer(activeTopImg);
     })
 
     // ==========================================
@@ -723,13 +727,7 @@ function exportTeoPhotoDirectly() {
 
     .then(() => {
 
-      const headLayer =
-        document.getElementById('layerHead');
-
-      return drawLayer(
-        activeHeadImg,
-        headLayer
-      );
+      return drawLayer(activeHeadImg);
     })
 
     // ==========================================
