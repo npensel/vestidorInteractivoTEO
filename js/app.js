@@ -543,24 +543,50 @@ function downloadFromConfirm() {
 function exportTeoPhotoDirectly() {
   playTone(800, 'triangle', 0.2);
   
-  // Seleccionamos exactamente el contenedor visual de TEO en la pantalla
-  const targetElement = document.querySelector('.mobile-frame') || document.getElementById('teoContainer') || document.querySelector('.character-container');
-  
-  if (!targetElement) {
-    showToast('No se encontró el contenedor de TEO para fotografiar.');
+  const canvas = document.getElementById('snapshotCanvas');
+  if (!canvas) {
+    showToast('No se encontró el lienzo para la foto.');
     return;
   }
+  
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  // 1. Fondo y Marco estético de la postal
+  ctx.fillStyle = '#F0F7FF';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = '#CBD5E1';
+  ctx.lineWidth = 8;
+  ctx.strokeRect(16, 16, canvas.width - 32, canvas.height - 32);
+  
+  // 2. Título superior
+  ctx.fillStyle = '#1E293B';
+  ctx.font = 'bold 30px "Fredoka", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('¡Mi Amigo TEO!', canvas.width / 2, 65);
 
-  showToast('📸 Generando foto de recuerdo...');
+  // Coordenadas fijas estándar y equilibradas para centrar a TEO y su ropa
+  const rx = 160;
+  const ry = 110;
+  const rw = 320;
+  const rh = 420;
 
-  // Usamos html2canvas para capturar tal cual lo ve el usuario en la interfaz
-  html2canvas(targetElement, {
-    scale: 2, // Mejora la nitidez de la imagen exportada
-    useCORS: true,
-    backgroundColor: '#F0F7FF'
-  }).then(renderedCanvas => {
+  // 3. Tomar la imagen base activa (Real o Dibujo)
+  const source = STATE.isRealPhotoActive
+    ? document.getElementById('teoRealPhoto')
+    : document.getElementById('teoDrawingImage');
+
+  const activeTopImg = document.querySelector('#layerTop img');
+  const activeHeadImg = document.querySelector('#layerHead img');
+
+  // Función para finalizar y descargar el archivo de forma segura
+  const finalizeExport = () => {
+    ctx.font = '600 15px "Fredoka", sans-serif';
+    ctx.fillStyle = '#94A3B8';
+    ctx.fillText('Proyecto Final de Carrera - UNLaM', canvas.width / 2, 690);
+
     try {
-      const dataUrl = renderedCanvas.toDataURL('image/png');
+      const dataUrl = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.download = `Mi_TEO_${currentChildProfile.name || 'Personalizado'}_${Date.now()}.png`;
       link.href = dataUrl;
@@ -568,15 +594,55 @@ function exportTeoPhotoDirectly() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      showToast('✨ ¡Foto de recuerdo descargada con éxito!');
+      showToast('📸 ¡Foto de recuerdo descargada con éxito!');
     } catch (e) {
-      console.error('Error al exportar la captura de pantalla:', e);
+      console.error('Error al exportar la foto:', e);
       showToast('No se pudo generar la foto.');
     }
-  }).catch(err => {
-    console.error('Error en html2canvas:', err);
-    showToast('Error al capturar la imagen.');
-  });
+  };
+
+  // Cargar y dibujar en orden correcto: Base -> Remera -> Accesorio de cabeza
+  if (source && source.src) {
+    const baseImg = new Image();
+    baseImg.crossOrigin = 'anonymous';
+    baseImg.onload = () => {
+      ctx.drawImage(baseImg, rx, ry, rw, rh);
+
+      // Dibujar remera si existe
+      if (activeTopImg && activeTopImg.src) {
+        const topImg = new Image();
+        topImg.crossOrigin = 'anonymous';
+        topImg.onload = () => {
+          ctx.drawImage(topImg, rx, ry, rw, rh);
+          
+          // Dibujar accesorios/auriculares si existen
+          if (activeHeadImg && activeHeadImg.src) {
+            const headImg = new Image();
+            headImg.crossOrigin = 'anonymous';
+            headImg.onload = () => {
+              ctx.drawImage(headImg, rx, ry, rw, rh);
+              finalizeExport();
+            };
+            headImg.src = activeHeadImg.src;
+          } else {
+            finalizeExport();
+          }
+        };
+        topImg.src = activeTopImg.src;
+      } else if (activeHeadImg && activeHeadImg.src) {
+        const headImg = new Image();
+        headImg.crossOrigin = 'anonymous';
+        headImg.onload = () => {
+          ctx.drawImage(headImg, rx, ry, rw, rh);
+          finalizeExport();
+        };
+        headImg.src = activeHeadImg.src;
+      } else {
+        finalizeExport();
+      }
+    };
+    baseImg.src = source.src;
+  }
 }
 
 function restartAndPlayAgain() {
