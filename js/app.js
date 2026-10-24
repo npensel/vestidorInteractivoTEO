@@ -541,7 +541,7 @@ function downloadFromConfirm() {
 }
 
 /* =========================================================================
-   PHOTO EXPORT SYSTEM (DEFINITIVO - CAPAS DE TAMAÑO COMPLETO & iOS SUPPORT)
+   PHOTO EXPORT SYSTEM (DEFINITIVO - CAPAS DE TAMAÑO COMPLETO)
    ========================================================================= */
 function exportTeoPhotoDirectly() {
   playTone(800, 'triangle', 0.2);
@@ -569,13 +569,13 @@ function exportTeoPhotoDirectly() {
   ctx.textAlign = 'center';
   ctx.fillText('¡Mi Amigo TEO!', canvas.width / 2, 65);
 
-  // 3. OBTENER LAS IMÁGENES ACTIVAS EN PANTALLA (con selectores reforzados)
+  // 3. OBTENER LAS IMÁGENES ACTIVAS EN PANTALLA
   const source = STATE.isRealPhotoActive
     ? document.getElementById('teoRealPhoto')
     : document.getElementById('teoDrawingImage');
 
-  const activeTopImg = document.querySelector('#layerTop img') || document.querySelector('.layer-top img');
-  const activeHeadImg = document.querySelector('#layerHead img') || document.querySelector('#headLayer img') || document.querySelector('.layer-head img') || document.querySelector('#layerHat img');
+  const activeTopImg = document.querySelector('#layerTop img');
+  const activeHeadImg = document.querySelector('#layerHead img');
 
   if (!source || !source.src) {
     showToast('No se encontró la imagen de TEO.');
@@ -599,39 +599,24 @@ function exportTeoPhotoDirectly() {
   const teoW = 320;
   const teoH = 420;
 
-
   // 4. SECUENCIA DE RENDERIZADO
   loadImage(source.src)
     .then(baseImg => {
       // Dibujar base de TEO
       ctx.drawImage(baseImg, teoX, teoY, teoW, teoH);
 
-      // Dibujar remera respetando sus proporciones originales y ubicándola en el pecho
+      // Dibujar remera (al ser PNG transparente de tamaño completo, usa las mismas coordenadas)
       if (activeTopImg && activeTopImg.src) {
         return loadImage(activeTopImg.src).then(topImg => {
-          const ratio = topImg.naturalWidth / topImg.naturalHeight;
-          const targetW = 200; // Ancho base para la remera
-          const targetH = targetW / ratio; // Alto proporcional automático
-          
-          const posX = teoX + (teoW - targetW) / 2;
-          const posY = teoY + 200; // Ubicada exactamente en el pecho
-
-          ctx.drawImage(topImg, posX, posY, targetW, targetH);
+          ctx.drawImage(topImg, teoX, teoY, teoW, teoH);
         });
       }
     })
     .then(() => {
-      // Dibujar accesorio respetando sus proporciones originales y ubicándolo en la cabeza
+      // Dibujar accesorio / sombrero (también PNG transparente de tamaño completo)
       if (activeHeadImg && activeHeadImg.src) {
         return loadImage(activeHeadImg.src).then(headImg => {
-          const ratio = headImg.naturalWidth / headImg.naturalHeight;
-          const targetW = 220; // Ancho base para el accesorio
-          const targetH = targetW / ratio; // Alto proporcional automático
-
-          const posX = teoX + (teoW - targetW) / 2;
-          const posY = teoY - 15; // Ubicado sobre la cabeza/orejas
-
-          ctx.drawImage(headImg, posX, posY, targetW, targetH);
+          ctx.drawImage(headImg, teoX, teoY, teoW, teoH);
         });
       }
     })
