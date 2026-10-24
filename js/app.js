@@ -629,37 +629,35 @@ function exportTeoPhotoDirectly() {
       // 6. DESCARGAR ARCHIVO PNG CON SOPORTE NATIVO PARA iPHONE/iPAD
       try {
         const fileName = `Mi_TEO_${currentChildProfile.name || 'Personalizado'}_${Date.now()}.png`;
+        // Usamos Base64 directo (dataUrl) para el enlace. Esto evita que Safari pierda el archivo en memoria.
+        const base64DataUrl = canvas.toDataURL('image/png');
 
         canvas.toBlob((blob) => {
           if (!blob) {
             showToast('Error al generar la imagen.');
             return;
           }
-          
           const file = new File([blob], fileName, { type: 'image/png' });
 
-          // Si es iOS/Android usa el menú nativo de compartir
+          // 1. Intentar abrir el menú de compartir de iOS/Android si está disponible
           if (navigator.canShare && navigator.canShare({ files: [file] })) {
             navigator.share({
               title: '¡Mi Amigo TEO!',
-              text: '¡Mirá cómo personalicé a TEO!',
               files: [file]
             }).then(() => {
-              showToast('📸 ¡Foto compartida/guardada con éxito!');
+              showToast('📸 ¡Foto guardada con éxito!');
             }).catch(err => {
-              console.log('Compartir cancelado o ignorado:', err);
+              console.log('El usuario canceló el menú nativo:', err);
             });
           } else {
-            // Fallback para PC
-            const dataUrl = URL.createObjectURL(blob);
+            // 2. Fallback: Si muestra el diálogo de Safari, ahora los botones SÍ funcionarán
             const link = document.createElement('a');
             link.download = fileName;
-            link.href = dataUrl;
+            link.href = base64DataUrl; 
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            URL.revokeObjectURL(dataUrl); 
-            showToast('📸 ¡Foto de recuerdo descargada con éxito!');
+            showToast('📸 ¡Foto lista para descargar!');
           }
         }, 'image/png');
       } catch (e) {
