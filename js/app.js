@@ -599,24 +599,39 @@ function exportTeoPhotoDirectly() {
   const teoW = 320;
   const teoH = 420;
 
+
   // 4. SECUENCIA DE RENDERIZADO
   loadImage(source.src)
     .then(baseImg => {
       // Dibujar base de TEO
       ctx.drawImage(baseImg, teoX, teoY, teoW, teoH);
 
-      // Dibujar remera
+      // Dibujar remera respetando sus proporciones originales y ubicándola en el pecho
       if (activeTopImg && activeTopImg.src) {
         return loadImage(activeTopImg.src).then(topImg => {
-          ctx.drawImage(topImg, teoX, teoY, teoW, teoH);
+          const ratio = topImg.naturalWidth / topImg.naturalHeight;
+          const targetW = 200; // Ancho base para la remera
+          const targetH = targetW / ratio; // Alto proporcional automático
+          
+          const posX = teoX + (teoW - targetW) / 2;
+          const posY = teoY + 200; // Ubicada exactamente en el pecho
+
+          ctx.drawImage(topImg, posX, posY, targetW, targetH);
         });
       }
     })
     .then(() => {
-      // Dibujar accesorio / sombrero
+      // Dibujar accesorio respetando sus proporciones originales y ubicándolo en la cabeza
       if (activeHeadImg && activeHeadImg.src) {
         return loadImage(activeHeadImg.src).then(headImg => {
-          ctx.drawImage(headImg, teoX, teoY, teoW, teoH);
+          const ratio = headImg.naturalWidth / headImg.naturalHeight;
+          const targetW = 220; // Ancho base para el accesorio
+          const targetH = targetW / ratio; // Alto proporcional automático
+
+          const posX = teoX + (teoW - targetW) / 2;
+          const posY = teoY - 15; // Ubicado sobre la cabeza/orejas
+
+          ctx.drawImage(headImg, posX, posY, targetW, targetH);
         });
       }
     })
