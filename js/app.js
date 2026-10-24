@@ -541,7 +541,7 @@ function downloadFromConfirm() {
 }
 
 /* =========================================================================
-   PHOTO EXPORT SYSTEM (DEFINITIVO - CAPAS DE TAMAÑO COMPLETO)
+   PHOTO EXPORT SYSTEM (DEFINITIVO - CAPAS DE TAMAÑO COMPLETO & iOS SUPPORT)
    ========================================================================= */
 function exportTeoPhotoDirectly() {
   playTone(800, 'triangle', 0.2);
@@ -569,13 +569,13 @@ function exportTeoPhotoDirectly() {
   ctx.textAlign = 'center';
   ctx.fillText('¡Mi Amigo TEO!', canvas.width / 2, 65);
 
-  // 3. OBTENER LAS IMÁGENES ACTIVAS EN PANTALLA
+  // 3. OBTENER LAS IMÁGENES ACTIVAS EN PANTALLA (con selectores reforzados)
   const source = STATE.isRealPhotoActive
     ? document.getElementById('teoRealPhoto')
     : document.getElementById('teoDrawingImage');
 
-  const activeTopImg = document.querySelector('#layerTop img');
-  const activeHeadImg = document.querySelector('#layerHead img');
+  const activeTopImg = document.querySelector('#layerTop img') || document.querySelector('.layer-top img');
+  const activeHeadImg = document.querySelector('#layerHead img') || document.querySelector('#headLayer img') || document.querySelector('.layer-head img') || document.querySelector('#layerHat img');
 
   if (!source || !source.src) {
     showToast('No se encontró la imagen de TEO.');
@@ -605,7 +605,7 @@ function exportTeoPhotoDirectly() {
       // Dibujar base de TEO
       ctx.drawImage(baseImg, teoX, teoY, teoW, teoH);
 
-      // Dibujar remera (al ser PNG transparente de tamaño completo, usa las mismas coordenadas)
+      // Dibujar remera
       if (activeTopImg && activeTopImg.src) {
         return loadImage(activeTopImg.src).then(topImg => {
           ctx.drawImage(topImg, teoX, teoY, teoW, teoH);
@@ -613,7 +613,7 @@ function exportTeoPhotoDirectly() {
       }
     })
     .then(() => {
-      // Dibujar accesorio / sombrero (también PNG transparente de tamaño completo)
+      // Dibujar accesorio / sombrero
       if (activeHeadImg && activeHeadImg.src) {
         return loadImage(activeHeadImg.src).then(headImg => {
           ctx.drawImage(headImg, teoX, teoY, teoW, teoH);
@@ -626,17 +626,42 @@ function exportTeoPhotoDirectly() {
       ctx.fillStyle = '#94A3B8';
       ctx.fillText('Proyecto Final de Carrera - UNLaM', canvas.width / 2, 690);
 
-      // 6. DESCARGAR ARCHIVO PNG
+      // 6. DESCARGAR ARCHIVO PNG CON SOPORTE NATIVO PARA iPHONE/iPAD
       try {
-        const dataUrl = canvas.toDataURL('image/png');
-        const link = document.createElement('a');
-        link.download = `Mi_TEO_${currentChildProfile.name || 'Personalizado'}_${Date.now()}.png`;
-        link.href = dataUrl;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        const fileName = `Mi_TEO_${currentChildProfile.name || 'Personalizado'}_${Date.now()}.png`;
 
-        showToast('📸 ¡Foto de recuerdo descargada con éxito!');
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            showToast('Error al generar la imagen.');
+            return;
+          }
+          
+          const file = new File([blob], fileName, { type: 'image/png' });
+
+          // Si es iOS/Android usa el menú nativo de compartir
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            navigator.share({
+              title: '¡Mi Amigo TEO!',
+              text: '¡Mirá cómo personalicé a TEO!',
+              files: [file]
+            }).then(() => {
+              showToast('📸 ¡Foto compartida/guardada con éxito!');
+            }).catch(err => {
+              console.log('Compartir cancelado o ignorado:', err);
+            });
+          } else {
+            // Fallback para PC
+            const dataUrl = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = fileName;
+            link.href = dataUrl;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(dataUrl); 
+            showToast('📸 ¡Foto de recuerdo descargada con éxito!');
+          }
+        }, 'image/png');
       } catch (e) {
         console.error('Error al exportar la foto:', e);
         showToast('No se pudo generar la foto.');
