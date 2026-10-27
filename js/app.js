@@ -540,9 +540,6 @@ function downloadFromConfirm() {
   exportTeoPhotoDirectly();
 }
 
-/* =========================================================================
-   PHOTO EXPORT SYSTEM (DEFINITIVO - CAPAS DE TAMAÑO COMPLETO)
-   ========================================================================= */
 function exportTeoPhotoDirectly() {
   playTone(800, 'triangle', 0.2);
 
@@ -569,62 +566,32 @@ function exportTeoPhotoDirectly() {
   ctx.textAlign = 'center';
   ctx.fillText('¡Mi Amigo TEO!', canvas.width / 2, 65);
 
-  // 3. OBTENER LAS IMÁGENES ACTIVAS EN PANTALLA
-  const source = STATE.isRealPhotoActive
-    ? document.getElementById('teoRealPhoto')
-    : document.getElementById('teoDrawingImage');
-
-  const activeTopImg = document.querySelector('#layerTop img');
-  const activeHeadImg = document.querySelector('#layerHead img');
-
-  if (!source || !source.src) {
-    showToast('No se encontró la imagen de TEO.');
+  // 3. CAPTURAR EL CONTENEDOR EXACTO DE TEO (SIN INTERFAZ, BOTONES NI FLECHAS)
+  const characterNode = document.getElementById('characterContainer');
+  if (!characterNode) {
+    showToast('No se encontró el contenedor de TEO.');
     return;
   }
 
-  // Función auxiliar para cargar imágenes con CORS
-  function loadImage(src) {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error(`No se pudo cargar la imagen: ${src}`));
-      img.src = src;
-    });
-  }
+  // Usamos html2canvas para tomar la foto literal del personaje con su ropa puesta
+  html2canvas(characterNode, {
+    backgroundColor: null, // Para que el fondo de la captura sea transparente
+    scale: 2 // Aumenta la calidad del recorte
+  }).then(teoScreenshotCanvas => {
+    
+    // 4. DIBUJAR LA CAPTURA PERFECTA EN NUESTRA POSTAL
+    // Centramos el recorte de TEO en el lienzo
+    const renderW = 320;
+    const renderH = 420;
+    const renderX = (canvas.width - renderW) / 2;
+    const renderY = 110;
 
-  // Coordenadas base de TEO en el canvas de exportación (ancho: 320, alto: 420)
-  const teoX = 160;
-  const teoY = 110;
-  const teoW = 320;
-  const teoH = 420;
+    ctx.drawImage(teoScreenshotCanvas, renderX, renderY, renderW, renderH);
 
-  // 4. SECUENCIA DE RENDERIZADO
-  loadImage(source.src)
-    .then(baseImg => {
-      // Dibujar base de TEO
-      ctx.drawImage(baseImg, teoX, teoY, teoW, teoH);
-
-      // Dibujar remera (al ser PNG transparente de tamaño completo, usa las mismas coordenadas)
-      if (activeTopImg && activeTopImg.src) {
-        return loadImage(activeTopImg.src).then(topImg => {
-          ctx.drawImage(topImg, teoX, teoY, teoW, teoH);
-        });
-      }
-    })
-    .then(() => {
-      // Dibujar accesorio / sombrero (también PNG transparente de tamaño completo)
-      if (activeHeadImg && activeHeadImg.src) {
-        return loadImage(activeHeadImg.src).then(headImg => {
-          ctx.drawImage(headImg, teoX, teoY, teoW, teoH);
-        });
-      }
-    })
-    .then(() => {
-      // 5. PIE DE FOTO
-      ctx.font = '600 15px "Fredoka", sans-serif';
-      ctx.fillStyle = '#94A3B8';
-      ctx.fillText('Proyecto Final de Carrera - UNLaM', canvas.width / 2, 690);
+    // 5. PIE DE FOTO
+    ctx.font = '600 15px "Fredoka", sans-serif';
+    ctx.fillStyle = '#94A3B8';
+    ctx.fillText('Proyecto Final de Carrera - UNLaM', canvas.width / 2, 690);
 
       // 6. DESCARGAR ARCHIVO PNG (NATIVO EN MÓVILES, DIRECTO EN PC/MAC)
       try {
