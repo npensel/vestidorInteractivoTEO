@@ -76,28 +76,8 @@ function speakTeo(text, audioKey = text) {
       console.log(`🔊 Reproduciendo audio local: ${audioSrc}`);
     }).catch((err) => {
       console.warn(`No se pudo reproducir el audio ${audioSrc}, usando voz sintética:`, err);
-      speakWithSpeechSynthesis(text);
     });
     return;
-  }
-
-  // 2. Respaldo por síntesis de voz del navegador si no hay archivo de audio asociado
-  speakWithSpeechSynthesis(text);
-}
-
-// Función auxiliar para manejar la síntesis de voz nativa de respaldo
-function speakWithSpeechSynthesis(text) {
-  if ('speechSynthesis' in window) {
-    try {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'es-AR';
-      utterance.rate = 0.95;
-      utterance.pitch = 1.25;
-      window.speechSynthesis.speak(utterance);
-    } catch (e) {
-      console.warn('Speech error:', e);
-    }
   }
 }
 
