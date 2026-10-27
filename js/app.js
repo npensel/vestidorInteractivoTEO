@@ -626,10 +626,9 @@ function exportTeoPhotoDirectly() {
       ctx.fillStyle = '#94A3B8';
       ctx.fillText('Proyecto Final de Carrera - UNLaM', canvas.width / 2, 690);
 
-      // 6. DESCARGAR ARCHIVO PNG CON SOPORTE NATIVO PARA iPHONE/iPAD
+      // 6. DESCARGAR ARCHIVO PNG (NATIVO EN MÓVILES, DIRECTO EN PC/MAC)
       try {
         const fileName = `Mi_TEO_${currentChildProfile.name || 'Personalizado'}_${Date.now()}.png`;
-        // Usamos Base64 directo (dataUrl) para el enlace. Esto evita que Safari pierda el archivo en memoria.
         const base64DataUrl = canvas.toDataURL('image/png');
 
         canvas.toBlob((blob) => {
@@ -639,8 +638,13 @@ function exportTeoPhotoDirectly() {
           }
           const file = new File([blob], fileName, { type: 'image/png' });
 
-          // 1. Intentar abrir el menú de compartir de iOS/Android si está disponible
-          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          // Detección de dispositivo (incluyendo el caso especial de los iPad modernos)
+          const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+          const isAndroid = /Android/i.test(navigator.userAgent);
+          const isMobile = isIOS || isAndroid;
+
+          // 1. Usar el menú nativo de compartir SOLO si es celular o tablet (iPhone/iPad/Android)
+          if (isMobile && navigator.canShare && navigator.canShare({ files: [file] })) {
             navigator.share({
               title: '¡Mi Amigo TEO!',
               files: [file]
@@ -650,7 +654,7 @@ function exportTeoPhotoDirectly() {
               console.log('El usuario canceló el menú nativo:', err);
             });
           } else {
-            // 2. Fallback: Si muestra el diálogo de Safari, ahora los botones SÍ funcionarán
+            // 2. Descarga directa (comportamiento clásico de Finder/Explorador) para Mac y PC
             const link = document.createElement('a');
             link.download = fileName;
             link.href = base64DataUrl; 
