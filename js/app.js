@@ -549,21 +549,25 @@ function exportTeoPhotoDirectly() {
     return;
   }
 
+  // AGREGAR ESTO: Forzar resolución 9:16 (Historia de Instagram)
+  canvas.width = 1080;
+  canvas.height = 1920;
+
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // 1. FONDO Y MARCO DEL RECUERDO
+  // 1. FONDO Y MARCO DEL RECUERDO (Ajustado)
   ctx.fillStyle = '#F0F7FF';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.strokeStyle = '#CBD5E1';
-  ctx.lineWidth = 8;
-  ctx.strokeRect(16, 16, canvas.width - 32, canvas.height - 32);
+  ctx.lineWidth = 16; 
+  ctx.strokeRect(32, 32, canvas.width - 64, canvas.height - 64);
 
-  // 2. TÍTULO
+  // 2. TÍTULO (Ajustado a fuente más grande)
   ctx.fillStyle = '#1E293B';
-  ctx.font = 'bold 30px "Fredoka", sans-serif';
+  ctx.font = 'bold 60px "Fredoka", sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('¡Mi Amigo TEO!', canvas.width / 2, 65);
+  ctx.fillText('¡Mi Amigo TEO!', canvas.width / 2, 160);
 
   // 3. NODOS VISUALES Y GEOMETRÍA DEL NAVEGADOR
   const characterNode = document.getElementById('characterContainer');
@@ -581,11 +585,11 @@ function exportTeoPhotoDirectly() {
     return;
   }
 
-  // Área objetivo en el Canvas
-  const teoX = 160;
-  const teoY = 110;
-  const teoW = 320;
-  const teoH = 420;
+  // Área objetivo en el Canvas (Escalado para 1080x1920)
+  const teoW = 760;
+  const teoH = 1000;
+  const teoX = (canvas.width - teoW) / 2; // Lo centra horizontalmente perfecto
+  const teoY = 460; // Lo centra verticalmente
 
   // ESTA ES LA MAGIA: Clona la posición CSS y simula object-fit: contain a la perfección
   function drawProportional(domNode, imgObj) {
@@ -648,10 +652,10 @@ function exportTeoPhotoDirectly() {
       }
     })
     .then(() => {
-      // 5. PIE DE FOTO
-      ctx.font = '600 15px "Fredoka", sans-serif';
+      // 5. PIE DE FOTO (Ajustado)
+      ctx.font = '600 30px "Fredoka", sans-serif';
       ctx.fillStyle = '#94A3B8';
-      ctx.fillText('Proyecto Final de Carrera - UNLaM', canvas.width / 2, 690);
+      ctx.fillText('Proyecto Final de Carrera - UNLaM', canvas.width / 2, 1830);
 
       // 6. DESCARGAR ARCHIVO PNG (NATIVO EN MÓVILES, DIRECTO EN PC/MAC)
       try {
