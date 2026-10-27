@@ -555,7 +555,6 @@ function exportTeoPhotoDirectly() {
   // 1. FONDO Y MARCO DEL RECUERDO
   ctx.fillStyle = '#F0F7FF';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-
   ctx.strokeStyle = '#CBD5E1';
   ctx.lineWidth = 8;
   ctx.strokeRect(16, 16, canvas.width - 32, canvas.height - 32);
@@ -566,32 +565,93 @@ function exportTeoPhotoDirectly() {
   ctx.textAlign = 'center';
   ctx.fillText('¡Mi Amigo TEO!', canvas.width / 2, 65);
 
-  // 3. CAPTURAR EL CONTENEDOR EXACTO DE TEO (SIN INTERFAZ, BOTONES NI FLECHAS)
+  // 3. NODOS VISUALES Y GEOMETRÍA DEL NAVEGADOR
   const characterNode = document.getElementById('characterContainer');
-  if (!characterNode) {
-    showToast('No se encontró el contenedor de TEO.');
+  if (!characterNode) return;
+  const containerRect = characterNode.getBoundingClientRect();
+
+  const baseImgNode = STATE.isRealPhotoActive
+    ? document.getElementById('teoRealPhoto')
+    : document.getElementById('teoDrawingImage');
+  const activeTopNode = document.querySelector('#layerTop img');
+  const activeHeadNode = document.querySelector('#layerHead img');
+
+  if (!baseImgNode || !baseImgNode.src) {
+    showToast('No se encontró la imagen de TEO.');
     return;
   }
 
-  // Usamos html2canvas para tomar la foto literal del personaje con su ropa puesta
-  html2canvas(characterNode, {
-    backgroundColor: null, // Para que el fondo de la captura sea transparente
-    scale: 2 // Aumenta la calidad del recorte
-  }).then(teoScreenshotCanvas => {
+  // Área objetivo en el Canvas
+  const teoX = 160;
+  const teoY = 110;
+  const teoW = 320;
+  const teoH = 420;
+
+  // ESTA ES LA MAGIA: Clona la posición CSS y simula object-fit: contain a la perfección
+  function drawProportional(domNode, imgObj) {
+    if (!domNode) return;
+    const rect = domNode.getBoundingClientRect();
+    if (containerRect.width === 0 || rect.width === 0) return;
+
+    // A. Mapear la caja del DOM a la caja del Canvas
+    const relX = (rect.left - containerRect.left) / containerRect.width;
+    const relY = (rect.top - containerRect.top) / containerRect.height;
+    const relW = rect.width / containerRect.width;
+    const relH = rect.height / containerRect.height;
+
+    const boxX = teoX + (relX * teoW);
+    const boxY = teoY + (relY * teoH);
+    const boxW = relW * teoW;
+    const boxH = relH * teoH;
+
+    // B. Simular object-fit: contain para que la ropa nunca se deforme
+    const imgRatio = imgObj.width / imgObj.height;
+    const boxRatio = boxW / boxH;
+    let fW, fH, fX, fY;
+
+    if (imgRatio > boxRatio) {
+      fW = boxW;
+      fH = boxW / imgRatio;
+      fX = boxX;
+      fY = boxY + (boxH - fH) / 2;
+    } else {
+      fH = boxH;
+      fW = boxH * imgRatio;
+      fX = boxX + (boxW - fW) / 2;
+      fY = boxY;
+    }
     
-    // 4. DIBUJAR LA CAPTURA PERFECTA EN NUESTRA POSTAL
-    // Centramos el recorte de TEO en el lienzo
-    const renderW = 320;
-    const renderH = 420;
-    const renderX = (canvas.width - renderW) / 2;
-    const renderY = 110;
+    ctx.drawImage(imgObj, fX, fY, fW, fH);
+  }
 
-    ctx.drawImage(teoScreenshotCanvas, renderX, renderY, renderW, renderH);
+  function loadImage(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error(`Error cargando: ${src}`));
+      img.src = src;
+    });
+  }
 
-    // 5. PIE DE FOTO
-    ctx.font = '600 15px "Fredoka", sans-serif';
-    ctx.fillStyle = '#94A3B8';
-    ctx.fillText('Proyecto Final de Carrera - UNLaM', canvas.width / 2, 690);
+  // 4. SECUENCIA DE RENDERIZADO
+  loadImage(baseImgNode.src)
+    .then(baseImg => {
+      drawProportional(baseImgNode, baseImg);
+      if (activeTopNode && activeTopNode.src) {
+        return loadImage(activeTopNode.src).then(topImg => drawProportional(activeTopNode, topImg));
+      }
+    })
+    .then(() => {
+      if (activeHeadNode && activeHeadNode.src) {
+        return loadImage(activeHeadNode.src).then(headImg => drawProportional(activeHeadNode, headImg));
+      }
+    })
+    .then(() => {
+      // 5. PIE DE FOTO
+      ctx.font = '600 15px "Fredoka", sans-serif';
+      ctx.fillStyle = '#94A3B8';
+      ctx.fillText('Proyecto Final de Carrera - UNLaM', canvas.width / 2, 690);
 
       // 6. DESCARGAR ARCHIVO PNG (NATIVO EN MÓVILES, DIRECTO EN PC/MAC)
       try {
