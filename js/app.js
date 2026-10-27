@@ -108,14 +108,40 @@ function replayCurrentSpeech() {
   toggleTeoVoice();
 }
 
+// Variable para recordar la última frase que dijo TEO
+let lastTapAudioKey = null;
+
 function tapTeo() {
+  // 1. Definimos la frase y el audio por defecto
+  let friendPhrase = '¡Sos mi mejor amigo o amiga! 💚';
+  let friendAudioKey = 'tap_friend'; 
+
+  // 2. Evaluamos el género seleccionado y cambiamos texto y clave de audio
+  if (currentChildProfile.gender === 'Niño') {
+    friendPhrase = '¡Sos mi mejor amigo! 💚';
+    friendAudioKey = 'tap_friend_boy'; 
+  } else if (currentChildProfile.gender === 'Niña') {
+    friendPhrase = '¡Sos mi mejor amiga! 💚';
+    friendAudioKey = 'tap_friend_girl';
+  }
+
+  // 3. Armamos la lista completa de frases
   const phrases = [
     ['¡Un abrazo suave me hace muy feliz! 🤗', 'tap_hug'],
-    ['¡Sos mi mejor amigo/a! 💚', 'tap_friend'],
+    [friendPhrase, friendAudioKey],
     ['¿Jugamos a cambiarme la ropita?', 'tap_play'],
     ['¡Me gusta mucho cómo combinaste mi ropa!', 'tap_like']
   ];
-  const [r, audioKey] = phrases[Math.floor(Math.random() * phrases.length)];
+
+  // 4. Filtramos la lista para excluir la frase que acaba de sonar
+  const availablePhrases = phrases.filter(p => p[1] !== lastTapAudioKey);
+
+  // 5. Elegimos una al azar entre las disponibles
+  const [r, audioKey] = availablePhrases[Math.floor(Math.random() * availablePhrases.length)];
+  
+  // 6. Guardamos esta nueva elección en la memoria para el próximo toque
+  lastTapAudioKey = audioKey;
+
   playTone(680, 'sine', 0.15);
   speakTeo(r, audioKey);
 }
